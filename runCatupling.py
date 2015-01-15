@@ -44,7 +44,7 @@ process.source.fileNames = cms.untracked.vstring(
 'file:$HOME/jpsi.root'
 )
 
-addGenParticle = cms.untracked.vstring('keep *_genParticles*_*_*')
+addGenParticle = cms.untracked.vstring('keep recoGenParticles_genParticles*_*_*')
 process.out.outputCommands += addGenParticle
-
+process.pfSelectedMuonsPFlow.cut = cms.string('')
 
