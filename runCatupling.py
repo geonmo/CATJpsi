@@ -38,13 +38,31 @@ process.jec = cms.ESSource("PoolDBESSource",
 process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 process.maxEvents.input = -1
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 process.source.fileNames = cms.untracked.vstring(
 'file:$HOME/jpsi.root'
 )
 
+
 addGenParticle = cms.untracked.vstring('keep recoGenParticles_genParticles*_*_*')
 process.out.outputCommands += addGenParticle
+
+# Remove pt>5GeV/c cut for Muon.
 process.pfSelectedMuonsPFlow.cut = cms.string('')
+# Jet Correction option for 2012Rereco 
+process.pfPileUpPFlow.checkClosestZVertex = False
+
+# top projections in PF2PAT: we are turning off top projection
+process.pfNoMuonPFlow.enable = False #True
+process.pfNoElectronPFlow.enable = False #True
+process.pfNoJetPFlow.enable = False #True
+
+# Use non-isolated muons and electrons
+process.patMuonsPFlow.pfMuonSource = "pfMuonsPFlow"
+process.patElectronsPFlow.pfElectronSource = "pfElectronsPFlow"
+# And turn on delta-beta corrections while building pfIsolated*PFlow
+process.pfIsolatedMuonsPFlow.doDeltaBetaCorrection = True
+process.pfIsolatedElectronsPFlow.doDeltaBetaCorrection = True
+
 
