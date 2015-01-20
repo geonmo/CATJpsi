@@ -15,11 +15,12 @@ class Gen :
     d_phi = TVector2.Phi_mpi_pi(jpsi1.phi()-jpsi2.phi())
     dRval = sqrt( d_eta*d_eta + d_phi*d_phi)
     if ( exact ) :
-      if ( rel_pt < 1.1 and dRval < 0.025 ) :
+      if ( rel_pt < 1 and dRval < 0.025 ) :
         return True 
     else :
       #if ( rel_pt < 0.25 and rel_eta < 0.25 and rel_phi < 0.25 ) :
-      if ( dRval < 0.25 ) :
+      #if ( True) :
+      if ( dRval < 0.05 ) :
         return True
     if ( exact) :
       print "Rel :  ",rel_pt, dRval
@@ -44,17 +45,18 @@ class Gen :
 
 
     output = TFile("outputJpsi.root","RECREATE")
-    nGenJpsi = TH1F("gen jpsi","n_gen_jpsi",10,0,10)
-    nCatJpsi = TH1F("cat jpsi","n_cat_jpsi",10,0,10)
-    nMuon = TH1F("# of muons","n_muons",10,0,10)
-    trJpsi = TH1F("Trigger cat_jpsi","tr_jpsi",2,0,2)
+    nGenJpsi = TH1F("n_gen_jpsi","gen jpsi",10,0,10)
+    nCatJpsi = TH1F("n_cat_jpsi","cat jpsi",10,0,10)
+    nMuon = TH1F("n_muons","# of muons",10,0,10)
+    trJpsi = TH1F("tr_jpsi","Trigger cat_jpsi",2,0,2)
     trJpsi.GetXaxis().SetBinLabel(1,"failed")
     trJpsi.GetXaxis().SetBinLabel(2,"passed")
 
-    cat_vs_gen = TH2F("cat vs gen","cat_gen",10,0,10,10,0,10)
+    cat_vs_gen = TH2F("cat_gen","cat vs gen",10,0,10,10,0,10)
     cat_vs_gen.GetXaxis().SetTitle("# of GEN J/psi")
     cat_vs_gen.GetYaxis().SetTitle("# of CAT J/psi")
-
+    
+    tuple = TNtuple("ntuple","ntuple","nGen:nCat:nMuon")
     
     for iev,event in enumerate(events):
       event.getByLabel(goodVTXLabel, GVTX)
@@ -90,7 +92,7 @@ class Gen :
         continue
       """
       for gen in gens :
-        if ( gen.pdgId() == 443) :
+        if ( gen.pdgId() == 443 ) :
           gen_jpsis.append( gen )
           ori_gen_jpsis.append(gen)
         #print gen.pdgId(),
@@ -98,35 +100,47 @@ class Gen :
 
       cat_jpsis=[]
       for cat_jpsi in secVtxs :
-        cat_jpsis.append( cat_jpsi)
+        if ( cat_jpsi.pt()>1 and abs(cat_jpsi.eta())<2.5) :
+          cat_jpsis.append( cat_jpsi)
+
+      c_genJpsis=[]
+      c_catJpsis=[]
 
       #Remove duplicate.
+      c_genJpsis.append(gen_jpsis[0])
+      if(len( cat_jpsis) >0 ) : 
+        c_catJpsis.append(cat_jpsis[0]) 
       for gen_jpsi1 in gen_jpsis :
         for gen_jpsi2 in gen_jpsis[ (gen_jpsis.index(gen_jpsi1)+1):] :
-          if ( self.isEqual( gen_jpsi1, gen_jpsi2) ) :
+          if ( not self.isEqual( gen_jpsi1, gen_jpsi2) ) :
             gen_jpsis.remove( gen_jpsi2)
+      print "Event : ",iev 
       for cat_jpsi1 in cat_jpsis :
+        print "(%f,%f,%f),\n"%(cat_jpsi1.pt(),cat_jpsi1.eta(),cat_jpsi1.phi())
+        print "\n"
         for cat_jpsi2 in cat_jpsis[(cat_jpsis.index( cat_jpsi1)+1):] :
+          print "%d:(%f,%f,%f)"%(cat_jpsis.index(cat_jpsi2),cat_jpsi2.pt(),cat_jpsi2.eta(),cat_jpsi2.phi())
           if ( self.isEqual( cat_jpsi1, cat_jpsi2, False)) :
             cat_jpsis.remove( cat_jpsi2)
 
       nGenJpsi.Fill( len(gen_jpsis) )
-      nCatJpsi.Fill( len(cat_jpsis) )
       cat_vs_gen.Fill( len(gen_jpsis), len(cat_jpsis))
       if ( len(cat_jpsis) > 0 ) :
         trJpsi.Fill(1)
       else :
         trJpsi.Fill(0)
       if ( len(gen_jpsis)>1 ) :
-        print "Event : ",iev 
         for x in ori_gen_jpsis :
-          print "GEN : ",x.pt(),x.eta(),x.phi()
+          #print "GEN : ",x.pt(),x.eta(),x.phi()
+          pass
         if ( len(cat_jpsis)>0 ) :
-          print len(gen_jpsis), len(cat_jpsis)
+          #print len(gen_jpsis), len(cat_jpsis)
+          pass
           for cat_jpsi in cat_jpsis :
-            print cat_jpsi.pt(), cat_jpsi.eta(), cat_jpsi.phi()
+            #print cat_jpsi.pt(), cat_jpsi.eta(), cat_jpsi.phi()
+            pass
 
-
+      tuple.Fill(len(gen_jpsis),len(cat_jpsis),len(muons))
     output.Write()
     
       
