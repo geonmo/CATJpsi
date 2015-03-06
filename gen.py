@@ -81,9 +81,13 @@ class Gen :
     unmatched_jpsis_ntuple = TNtuple("unmatched_jpsis","UnMatched J/Psi's information","pt:eta:phi:mass:chi2:ndof:lxy:l3D:vProb:sigmalxy:dca:cxPtHypot:cxPtAbs")
     #matched_jpsis_ntuple = TNtuple("matched_jpsis","Matched J/Psi's information","pt:eta:phi:mass")
     #unmatched_jpsis_ntuple = TNtuple("unmatched_jpsis","Un-Matched J/Psi's information","pt:eta:phi:mass")
+    found_jpsi  = TH1F("isMatchedJpsi","Matched J/#psi between gen and cat.",2,0,2)
+    found_jpsi.GetXaxis().SetBinLabel(1,"Failed")
+    found_jpsi.GetXaxis().SetBinLabel(2,"Successed")
+    nJpsi = TNtuple("nJpsi","Number of J/#psi s","nJpsi")
     
     for iev,event in enumerate(events):
-      if iev > 100 : break
+      #if iev > 300 : break
       event.getByLabel(goodVTXLabel, GVTX)
       event.getByLabel(catMuonLabel, catMuon)
       event.getByLabel(catElectronLabel, catElectron)
@@ -114,18 +118,19 @@ class Gen :
       ori_gen_jpsis=[]
       c_gen_jpsis=[]
       for gen in gens :
-        if ( gen.pdgId() == 443 ) :
+        if ( gen.pdgId() == 443 and gen.pt()>1.0 and abs(gen.eta())<2.5  and gen.mass()>3 and gen.mass()<3.2 ) :
           gen_jpsis.append( gen )
       c_gen_jpsis = self.cleaning( gen_jpsis,True)
       
 
       cat_jpsis=[]
       for cat_jpsi in secVtxs :
-        cat_jpsis.append( cat_jpsi)
+        if ( cat_jpsi.pt()>1.0 and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 and cat_jpsi.vProb()>0.01 and cat_jpsi.dca()<0.05) :
+          cat_jpsis.append( cat_jpsi)
       c_reco_jpsis = self.cleaning( cat_jpsis,False)
       
 
-      print "# of gen J/psi  : %d, # of reco J/psi : %d\t"%(len(c_gen_jpsis), len(c_reco_jpsis))
+      print "evt : %d //  # of gen J/psi  : %d, # of reco J/psi : %d\t"%(iev, len(c_gen_jpsis), len(c_reco_jpsis))
       #Remove duplicate.
       matched_jpsis =[]
       unmatched_jpsis =[]
@@ -142,14 +147,16 @@ class Gen :
 
       if ( len(matched_jpsis)>0 ) :
         print "At least one jpsis is matched. ( %d)"%(len(matched_jpsis))
+        found_jpsi.Fill(1)
+        nJpsi.Fill( len(c_reco_jpsis))
       else :
         print "No jpsi is matched."
+        found_jpsi.Fill(0)
+        nJpsi.Fill( 0 )
 
       self.FillNtuple(matched_jpsis_ntuple,matched_jpsis)
       self.FillNtuple(unmatched_jpsis_ntuple,unmatched_jpsis)
 
-    #self.SaveNtuple("match.root",matched_jpsis_ntuple)
-    #self.SaveNtuple("unmatch.root",unmatched_jpsis_ntuple)
     output.Write()
     output.Close()
     
