@@ -84,23 +84,26 @@ class Gen :
     found_jpsi  = TH1F("isMatchedJpsi","Matched J/#psi between gen and cat.",2,0,2)
     found_jpsi.GetXaxis().SetBinLabel(1,"Failed")
     found_jpsi.GetXaxis().SetBinLabel(2,"Successed")
+    cleaned_found_jpsi  = TH1F("isMatchedJpsi_cleaned","Cleaned matched J/#psi between gen and cat if only J/#psi to mu+mu-.",2,0,2)
+    cleaned_found_jpsi.GetXaxis().SetBinLabel(1,"Failed")
+    cleaned_found_jpsi.GetXaxis().SetBinLabel(2,"Successed")
     nJpsi = TNtuple("nJpsi","Number of J/#psi s","nJpsi")
     
     for iev,event in enumerate(events):
       #if iev > 300 : break
-      event.getByLabel(goodVTXLabel, GVTX)
+      #event.getByLabel(goodVTXLabel, GVTX)
       event.getByLabel(catMuonLabel, catMuon)
-      event.getByLabel(catElectronLabel, catElectron)
+      #event.getByLabel(catElectronLabel, catElectron)
       event.getByLabel(catSecVertexLabel, catSecVtx)
-      event.getByLabel(catJetLabel, catJet)
+      #event.getByLabel(catJetLabel, catJet)
       event.getByLabel(catGenLabel, genParticle)
 
       goodvtx = GVTX.isValid()
       secVtxs = []
       try :      
         muons = catMuon.product()
-        electrons = catElectron.product()
-        jets = catJet.product()
+        #electrons = catElectron.product()
+        #jets = catJet.product()
         gens = genParticle.product()
       except RuntimeError :
         print "Warning! Among of one's product is null."
@@ -118,19 +121,22 @@ class Gen :
       ori_gen_jpsis=[]
       c_gen_jpsis=[]
       for gen in gens :
-        if ( gen.pdgId() == 443 and gen.pt()>1.0 and abs(gen.eta())<2.5  and gen.mass()>3 and gen.mass()<3.2 ) :
-          gen_jpsis.append( gen )
+        if ( gen.pdgId() == 443 and gen.pt()>1.0 and abs(gen.eta())<2.5  and gen.mass()>3 and gen.mass()<3.2) :
+          if ( gen.numberOfDaughters() ==2 ) :
+            if ( abs(gen.daughter(0).pdgId())==13 and abs(gen.daughter(1).pdgId())==13 ) :
+              gen_jpsis.append( gen )
+              #print "GEN Found"
       c_gen_jpsis = self.cleaning( gen_jpsis,True)
       
 
       cat_jpsis=[]
       for cat_jpsi in secVtxs :
-        if ( cat_jpsi.pt()>1.0 and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 and cat_jpsi.vProb()>0.01 and cat_jpsi.dca()<0.05) :
+        if ( cat_jpsi.pt()>1.0 and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 ) :
           cat_jpsis.append( cat_jpsi)
       c_reco_jpsis = self.cleaning( cat_jpsis,False)
       
-
-      print "evt : %d //  # of gen J/psi  : %d, # of reco J/psi : %d\t"%(iev, len(c_gen_jpsis), len(c_reco_jpsis))
+      if ( len( c_gen_jpsis) >0 ) :
+        print "evt : %d //  # of gen J/psi  : %d, # of reco J/psi : %d\t"%(iev, len(c_gen_jpsis), len(c_reco_jpsis))
       #Remove duplicate.
       matched_jpsis =[]
       unmatched_jpsis =[]
@@ -148,9 +154,11 @@ class Gen :
       if ( len(matched_jpsis)>0 ) :
         print "At least one jpsis is matched. ( %d)"%(len(matched_jpsis))
         found_jpsi.Fill(1)
+        if ( len(c_gen_jpsis) >0 ) : cleaned_found_jpsi.Fill(1)
         nJpsi.Fill( len(c_reco_jpsis))
       else :
-        print "No jpsi is matched."
+        #print "No jpsi is matched."
+        if ( len(c_gen_jpsis) >0 ) : cleaned_found_jpsi.Fill(0)
         found_jpsi.Fill(0)
         nJpsi.Fill( 0 )
 
