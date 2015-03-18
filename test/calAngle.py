@@ -7,9 +7,11 @@ from DataFormats.FWLite import Events, Handle
 import os,math,sys
 
 class Gen :
-  outputfile = None
-  def __init__(self,outputfile) :
-    self.outputfile = outputfile
+  outfile = None
+  infile = None
+  def __init__(self,infile, outfile) :
+    self.infile = infile
+    self.outfile = outfile
     pass
 
   def isFromB( self, particle ) :
@@ -78,19 +80,19 @@ class Gen :
     for jpsi in jpsiList :
       jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),0.0,0.0,jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs());
 
-  def Ana(self,infile) :
-    print "inner Ana : %s"%(infile)
-    file = TFile.Open(infile)
+  def Ana(self) :
+    print "inner Ana : %s"%(self.infile)
+    file = TFile.Open(self.infile)
     print "Load file : "+file.GetName()
     if ( file.IsZombie()) :
       print "%s is corruct!"%(infile)
       return
     file.Close()
 
-    events = Events(infile)
+    events = Events(self.infile)
     catGenLabel, genParticle = "genParticles", Handle("std::vector<reco::GenParticle>")
 
-    output = TFile(self.outputfile,"RECREATE")
+    output = TFile(self.outfile,"RECREATE")
 
     jpsi_info = TNtuple("jpsi_info","Information of di-muon and J/#psi pT","run:evt:dR:JPsipT:fromB:fromTop:muon1_pt:muon2_pt")
     
@@ -164,5 +166,7 @@ class Gen :
       
    
 if __name__ == "__main__" :
-  gen = Gen(sys.argv[2])
-  gen.Ana(sys.argv[1])
+  infile = sys.argv[1]
+  outfile = sys.argv[2]
+  gen = Gen(infile, outfile)
+  gen.Ana()
