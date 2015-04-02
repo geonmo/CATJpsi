@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from ROOT import *
-from Lepton import Lepton
-from Muon import Muon
-from Jet import Jet
-from Electron import Electron
-from Jpsi import Jpsi
+from CATJpsi.JPsiAnalysis.Lepton import Lepton
+from CATJpsi.JPsiAnalysis.Muon import Muon
+from CATJpsi.JPsiAnalysis.Jet import Jet
+from CATJpsi.JPsiAnalysis.Electron import Electron
+from CATJpsi.JPsiAnalysis.Jpsi import Jpsi
 
 gSystem.Load("libFWCoreFWLite.so");
 gSystem.Load("libDataFormatsFWLite.so");
