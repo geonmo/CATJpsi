@@ -10,7 +10,7 @@ gSystem.Load("libFWCoreFWLite.so");
 gSystem.Load("libDataFormatsFWLite.so");
 AutoLibraryLoader.enable()
 from DataFormats.FWLite import Events, Handle
-import os,math
+import os,math,sys
 import copy
 
 c_modes = ['MuMu','MuEl','ElEl']
@@ -232,12 +232,7 @@ class JpsiAna :
     print self.inputfile, self.outfilename
 
 if __name__ == "__main__" :
-  #signal_path = "/cms/data/xrd"
-  signal_path = "./"
-  #files = os.listdir(signal_path)
-  files = ["catTuple_1.root"]
-  #f = open("filelist.txt")
-  #files = f.readlines()
-  for i,file in enumerate(files) :
-    ana = JpsiAna( (signal_path+file).strip(), "hist_%04d"%(i) )
-    ana.Ana()
+  infile = sys.argv[1]
+  outfile = sys.argv[2]
+  ana = JpsiAna( infile, outfile )
+  ana.Ana()

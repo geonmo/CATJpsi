@@ -31,7 +31,7 @@ def bin_mod(br, name_tag, tr, cut):
     return [100, bin_min, bin_max]
 
 
-file = TFile.Open("output.root")
+file = TFile.Open(sys.argv[1])
 
 
 matched = file.Get("matched_jpsis")
