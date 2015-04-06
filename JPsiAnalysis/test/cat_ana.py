@@ -105,7 +105,7 @@ class JpsiAna :
       self.hist[(mode,step,'nEvent')].Fill(0)
     
   def Ana( self ) :
-    file = TFile(self.inputfile)
+    file = TFile.Open(self.inputfile)
     print "Load file : "+file.GetName()
     if ( file.IsZombie()) :
       print "%s is corruct!"%(self.inputfile)
