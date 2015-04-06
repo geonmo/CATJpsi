@@ -31,7 +31,7 @@ class JpsiAna :
         self.hist[(mode,step, 'muon_pt')  ] = TH1F ("muon_pt", "muon_pt", 100,0,200)
         self.hist[(mode,step, 'muon_eta') ] = TH1F ("muon_eta", "muon_eta", 100,-5,5)
         self.hist[(mode,step, 'muon_phi') ] = TH1F ("muon_phi", "muon_phi", 100,-math.pi,math.pi)
-        #self.muon_mass = TH1F ("muon_mass", "muon_mass;Muon mass(GeV/c^2);Entries", 100,0.1,0.11)
+        self.hist[(mode,step, 'muon_mass')] = TH1F ("muon_mass", "muon_mass;Muon mass(GeV/c^2);Entries", 100,0.1,0.11)
         self.hist[(mode,step, 'muon_relIso')] = TH1F("muon relIso","muon_relIso",100,0,1);
 
 
@@ -44,7 +44,7 @@ class JpsiAna :
         self.hist[(mode,step, 'jpsi_pt')  ] = TH1F ("jpsi_pt", "jpsi_pt", 100,0,200)
         self.hist[(mode,step, 'jpsi_eta') ] = TH1F ("jpsi_eta", "jpsi_eta", 100,-5,5)
         self.hist[(mode,step, 'jpsi_phi') ] = TH1F ("jpsi_phi", "jpsi_phi", 100,-math.pi,math.pi)
-        self.hist[(mode,step, 'jpsi_mass') ] = TH1F ("jpsi_mass", "jpsi_mass;Muon mass(GeV/c^2);Entries", 100,3,3.2)
+        self.hist[(mode,step, 'jpsi_mass') ] = TH1F ("jpsi_mass", "jpsi_mass;Muon mass(GeV/c^2);Entries", 100,2.8,3.4)
         self.hist[(mode,step, 'jpsi_vProb') ] = TH1F ("jpsi_vProb", "jpsi_vProb;Probablity;Entries", 100,0,1)
         self.hist[(mode,step, 'jpsi_l3D') ]   = TH1F ("jpsi_l3D", "jpsi_l3D;l3D;Entries", 500,0,5)
         self.hist[(mode,step, 'l1jpsi_pt')]   = TH1F ("l1jpsi_pt", "l1jpsi_pt", 100,0,200)                                   
@@ -112,7 +112,7 @@ class JpsiAna :
       return
     file.Close()
 
-    outfile = TFile("hist/"+self.outfilename+".root","RECREATE")
+    outfile = TFile(self.outfilename,"RECREATE")
     for mode in c_modes :
       for x in steps :
         outfile.mkdir("%s_s%d"%(mode,x))
@@ -126,7 +126,6 @@ class JpsiAna :
     catSecVertexLabel, catSecVtx = "catSecVertexs", Handle("std::vector<cat::SecVertex>")
     catJetLabel, catJet = "catJets", Handle("std::vector<cat::Jet>")
     for iev,event in enumerate(events):
-      #print iev 
       event.getByLabel(goodVTXLabel, GVTX)
       event.getByLabel(catMuonLabel, catMuon)
       event.getByLabel(catElectronLabel, catElectron)
@@ -140,19 +139,26 @@ class JpsiAna :
         electrons = catElectron.product()
         jets = catJet.product()
       except RuntimeError :
+        print iev 
         print "Warning! Among of one's product is null."
-      if ( len(muons)>=2 or len(electrons) >=2) :
+        continue
+      if ( len(muons)<2 and len(electrons) <2) :
+        continue
+      try :
         secVtxs = catSecVtx.product()
-      else :
+      except RuntimeError :
+        print "SecVtx is missing"
         secVtxs =[]
+      #print "muon : %d electorns : %d jets : %d"%(len(muons),len(electrons),len(jets))
 
-      modes =[]
       muon_list =[]
       elec_list =[]
       jet_list  =[]
       jpsi_list =[]
       l1jpsi_list=[]
       l2jpsi_list=[]
+
+      #Acquiring POGs.
       for muon in muons :
         t_muon = Muon(muon,'m')
         if ( t_muon.valid() ) :
@@ -165,65 +171,82 @@ class JpsiAna :
         t_jet = Jet(jet)
         if ( t_jet.valid() ) :
           jet_list.append(t_jet)
-      if len( muon_list ) >= 2 :
-        modes.append("MuMu")
-      if (len(muon_list) >=1 and len(elec_list ) >= 1) :
-        modes.append("MuEl")
-      if len(elec_list) >=2 : 
-        modes.append("ElEl")
 
+      ## J/psi's daughther type.
       for secVtx in secVtxs :
         if secVtx is None :
           continue
         if ( abs(secVtx.pdgId()) == 11 ) :
-          t_sV = Jpsi(secVtx, electrons)
+          #t_sV = Jpsi(secVtx, electrons)
+          t_sV = Jpsi(secVtx)
           jpsi_list.append( t_sV )
-          print "Append jpsi_list from muon on ",modes 
         elif ( abs(secVtx.pdgId()) == 13 ) :
-          t_sV = Jpsi(secVtx, muons)
+          #t_sV = Jpsi(secVtx, muons)
+          t_sV = Jpsi(secVtx)
           jpsi_list.append( t_sV ) 
-          print "Append jpsi_list from elec on ",modes 
         else :
           print "error."
-      # Cut Flow
+
+      # Event Selection.
       lep_list = muon_list + elec_list
+      # If num. of leptons < 2, it is not dilepton events.
       if ( len(lep_list) <2 ) : continue
+
+      # Cut Flow
       pass_flag={}
       for mode in c_modes :
         pass_flag[mode] =[False,False,False,False,False]
-      for lep_idx, f_lep in enumerate(lep_list) :
-        for lep in lep_list[lep_idx:] :
+      for lep_idx, iso_lep1 in enumerate(lep_list) :
+        for iso_lep2 in lep_list[lep_idx:] :
           mode =""
-          if ( f_lep.type=='m' and lep.type=='m') :
+          if ( iso_lep1.type=='m' and iso_lep2.type=='m') :
             mode="MuMu"
-          elif ( f_lep.type=='m' and lep.type=='e') :
-            mode="MuEl"
-          elif ( f_lep.type=='e' and lep.type=='e') :
+          elif ( iso_lep1.type=='e' and iso_lep2.type=='e') :
             mode="ElEl"     
+          elif ( iso_lep1.type=='m' and iso_lep2.type=='e') :
+            mode="MuEl"
+          
+          #To make required POGs.
+          ### Isolated lepton removed Jet.
+          cleaned_jet_list =[]
+          JpsiWithDR_5 = []
+          JpsiWithvProb_dPV = []
+          for jet in jet_list :
+            if ( jet.jetCleaning( iso_lep1, iso_lep2) ) :
+              cleaned_jet_list.append( jet )
+          ### Jpsi with dR< 0.5
+          for jpsi in jpsi_list :
+            jpsi.JetDR(cleaned_jet_list)
+            if ( jpsi.minDR< 0.5) :
+              JpsiWithDR_5.append(jpsi)
+            if ( jpsi.vProb>0.01 and (jpsi.l3D>0.02 and jpsi.l3D<2) ) :
+              JpsiWithvProb_dPV.append( jpsi)
+               
           #step1
-          if ( (f_lep+lep).M()>20. and f_lep.q* lep.q == -1 ) :
-            pass_flag[mode][0] = True
-            #step2
-            dilepton_mass = (f_lep+lep).M()
-            #print "dilepton mass : ",dilepton_mass
-            if  (dilepton_mass <76 or dilepton_mass > 106) or mode=="MuEl"  :
-              pass_flag[mode][1] = True
-              #step3
-              cleaned_jet_list =[]
-              for jet in jet_list :
-                if ( jet.jetCleaning( f_lep, lep) ) :
-                  cleaned_jet_list.append( jet )
-              if ( len( cleaned_jet_list) >=1 ) :
-                pass_flag[mode][2] = True
-                #step4
-                if ( len( jpsi_list ) > 0 ) :
-                  pass_flag[mode][3] = True
-                  #step5
-                  if ( True ) :
-                    pass_flag[mode][4] = True
-      for mode in modes :
-        for idx,pf in enumerate(pass_flag[mode]) :
-          if ( pf ) : 
+          dilepton_mass = (iso_lep1+iso_lep2).M()
+          if ( dilepton_mass<20. or iso_lep1.q* iso_lep2.q != -1 ) :
+            continue
+          pass_flag[mode][0] = True
+          #step2
+          if (dilepton_mass >76 and dilepton_mass < 106 and mode !="MuEl") :
+            continue
+          pass_flag[mode][1] = True
+          #step3
+          if ( len( cleaned_jet_list) <1 ) :
+            continue
+          pass_flag[mode][2] = True
+          #step4
+          if ( len(JpsiWithDR_5)<1 ) :
+            continue
+          pass_flag[mode][3] = True
+          if ( len(JpsiWithvProb_dPV) <1 ) :
+            continue
+          pass_flag[mode][4] = True
+
+      for mode in c_modes :
+        #print pass_flag[mode]
+        for idx,flag in enumerate(pass_flag[mode]) :
+          if ( flag ) : 
             self.FillHist( mode, idx+1, muon_list,elec_list,jet_list,jpsi_list)
 
     outfile.Write()
