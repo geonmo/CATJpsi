@@ -13,55 +13,6 @@ class AbsAna :
     self.infile = infile
     self.outfile = outfile
     pass
-
-  def isFromB( self, particle ) :
-    if (particle is None ) :
-      return False
-    try :
-      if ( abs(particle.pdgId()) == 5 ) :
-        return True
-    except :
-      print "Particle is not come from 'genParticle'. Can not get pdgId()"
-      return False
-    flag = False
-    nMother = particle.numberOfMothers()
-    for idx in range(nMother) :
-      if ( self.isFromB( particle.mother(idx) ) ) :
-        flag = True
-    return flag
-
-  def isFromTop( self, particle ) :
-    if (particle is None ) :
-      return False
-    try :
-      if ( particle.pdgId() == 6 ) :
-        return True
-    except :
-      print "Particle is not come from 'genParticle'. Can not get pdgId()"
-      return False
-    flag = False
-    nMother = particle.numberOfMothers()
-    for idx in range(nMother) :
-      if ( self.isFromTop( particle.mother(idx) ) ) :
-        flag = True
-    return flag
-
-  def isFromTopBar( self, particle ) :
-    if (particle is None ) :
-      return False
-    try :
-      if ( particle.pdgId() == -6 ) :
-        return True
-    except :
-      print "Particle is not come from 'genParticle'. Can not get pdgId()"
-      return False
-    flag = False
-    nMother = particle.numberOfMothers()
-    for idx in range(nMother) :
-      if ( self.isFromTopBar( particle.mother(idx) ) ) :
-        flag = True
-    return flag
-
   def isEqual( self, particle1, particle2, exact=True ) :
     rel_pt = abs((particle1.pt()-particle2.pt())/particle1.pt())
     d_eta = particle1.eta()-particle2.eta()

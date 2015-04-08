@@ -5,11 +5,11 @@ gSystem.Load("libDataFormatsFWLite.so");
 AutoLibraryLoader.enable()
 from DataFormats.FWLite import Events, Handle
 import os,math,sys
-from AbsAna import AbsAna 
+from TopAna import TopAna 
 
-class JpsiAna(AbsAna) : 
+class JpsiAna(TopAna) : 
   def __init__(self,infile, outfile) :
-    AbsAna.__init__(self,infile,outfile)
+    TopAna.__init__(self,infile,outfile)
 
   def isEqual( self, jpsi1, jpsi2, exact=True ) :
     rel_pt = abs((jpsi1.pt()-jpsi2.pt())/jpsi1.pt())
@@ -45,18 +45,6 @@ class JpsiAna(AbsAna) :
         isFromT = self.isFromTop( target_gen) or self.isFromTopBar( target_gen) 
         jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),0.0,0.0,jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs(),isFromB,isFromT)
 
-  def MuonID( self, muon) :
-    muonID = 0
-    if ( muon.isSoftMuon()) :
-      muonID += 1
-    if ( muon.isLooseMuon()) :
-      muonID += 2
-    if ( muon.isTightMuon()) :
-      muonID += 4
-    return muonID
-  
-        
-     
   def Ana(self) :
     if ( not self.checkInfile() ) :
       sys.exit(-1)
@@ -86,6 +74,10 @@ class JpsiAna(AbsAna) :
     nMuonPair = TNtuple("nMuonPair","Number of Muon Pairs","nMuonPair")
 
     isRD = False
+
+
+    jpsi_minPt = 4.0
+
     
     for iev,event in enumerate(events):
       event.getByLabel(catMuonLabel, catMuon)
@@ -130,7 +122,7 @@ class JpsiAna(AbsAna) :
       for cat_jpsi in secVtxs :
         #if (True) :
         #if ( cat_jpsi.pt()>1.0 and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 and cat_jpsi.vProb()>0.01 ) :
-        if ( cat_jpsi.pt()>1.0 and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 and cat_jpsi.vProb()>0.01 and cat_jpsi.dca()<0.05) :
+        if ( cat_jpsi.pt()>jpsi_minPt and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 and cat_jpsi.vProb()>0.01 and cat_jpsi.dca()<0.05 and cat_jpsi.l3D()>0.2 ) :
           cat_jpsis.append( cat_jpsi)
       c_reco_jpsis = self.cleaning( cat_jpsis,False)
       nCATJpsi.Fill( len(c_reco_jpsis))
@@ -140,7 +132,7 @@ class JpsiAna(AbsAna) :
 
       c_muons = []
       for muon in muons :
-        if ( muon.pt()>1.0 and abs(muon.eta())<2.5) :
+        if ( muon.pt()>jpsi_minPt and abs(muon.eta())<2.5) :
           c_muons.append( muon)
       nMuon.Fill( len( c_muons))
       pair = 0
@@ -156,8 +148,7 @@ class JpsiAna(AbsAna) :
         for gen in c_gen_jpsis :
           print "GEN  pT : %f, Eta: %f, Phi: %f, Mass: %f\n"%(gen.pt(),gen.eta(),gen.phi(), gen.mass())
         for cat_jpsi in c_reco_jpsis :
-          print "RECO pT : %f, Eta: %f, Phi: %f, Mass: %f, vProb: %f, DCA: %f, ipos %d, Ineg : %d\n"%(cat_jpsi.pt(),cat_jpsi.eta(),cat_jpsi.phi(), cat_jpsi.mass(),cat_jpsi.vProb(), cat_jpsi.dca(),cat_jpsi.ipos(), cat_jpsi.ineg())
-          print "RECO pT : %f, Eta: %f, Phi: %f, Mass: %f, vProb: %f, DCA: %f, muonID %d, Ineg : %d\n"%(cat_jpsi.pt(),cat_jpsi.eta(),cat_jpsi.phi(), cat_jpsi.mass(),cat_jpsi.vProb(), cat_jpsi.dca(),self.MuonID(muons.at(cat_jpsi.ipos())), cat_jpsi.ineg())
+          print "RECO pT : %f, Eta: %f, Phi: %f, Mass: %f, vProb: %f, DCA: %f, muonID %d, trackQuality : %d\n"%(cat_jpsi.pt(),cat_jpsi.eta(),cat_jpsi.phi(), cat_jpsi.mass(),cat_jpsi.vProb(), cat_jpsi.dca(),cat_jpsi.muID(), cat_jpsi.trackQuality())
 
       for reco_jpsi in c_reco_jpsis :
         matching= False

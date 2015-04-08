@@ -51,6 +51,7 @@ for i,x in enumerate(variable) :
   h1 = hist_maker( variable[i], variable[i]+"_matched",bins, variable[i],"Y",matched, variable[i], "1",kBlue)
   h2 = hist_maker( variable[i]+"_1", variable[i]+"_unmatched",bins, variable[i],"Y",unmatched, variable[i], "1",kRed)
   h1.Scale( 1/h1.GetEntries())
+  h1.SetLineWidth(2)
   h2.Scale( 1/h2.GetEntries())
   h1.Draw()
   h2.Draw("same")

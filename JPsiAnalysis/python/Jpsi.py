@@ -9,7 +9,7 @@ class Jpsi(TLorentzVector) :
     self.lxy = jpsi.lxy()
     self.dca = jpsi.dca()
     self.muonID = jpsi.muID()
-    self.trackIndex = jpsi.trackIndex()
+    self.trackQuality = jpsi.trackQuality()
     self.cxPtHypot = jpsi.cxPtHypot()
     self.minDR = 9999.
 
@@ -17,3 +17,7 @@ class Jpsi(TLorentzVector) :
     for jet in jet_list :
       deltaR = self.DeltaR( jet)
       if ( deltaR < self.minDR ) : self.minDR = deltaR
+
+  def valid( self) :
+    if (self.vProb > 0.01 and self.dca<0.05 and self.l3D>0.2) : return True
+    else : return False
