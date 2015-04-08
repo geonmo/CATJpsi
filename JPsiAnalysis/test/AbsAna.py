@@ -12,6 +12,9 @@ class AbsAna :
   def __init__(self,infile, outfile) :
     self.infile = infile
     self.outfile = outfile
+    if ( not self.checkInfile() ) :
+      print "ROOT file is not normal. Terminate analysis code."
+      sys.exit(-1)
     pass
   def isEqual( self, particle1, particle2, exact=True ) :
     rel_pt = abs((particle1.pt()-particle2.pt())/particle1.pt())

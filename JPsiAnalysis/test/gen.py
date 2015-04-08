@@ -11,30 +11,6 @@ class JpsiAna(TopAna) :
   def __init__(self,infile, outfile) :
     TopAna.__init__(self,infile,outfile)
 
-  def isEqual( self, jpsi1, jpsi2, exact=True ) :
-    rel_pt = abs((jpsi1.pt()-jpsi2.pt())/jpsi1.pt())
-    d_eta = jpsi1.eta()-jpsi2.eta()
-    d_phi = TVector2.Phi_mpi_pi(jpsi1.phi()-jpsi2.phi())
-    dRval = sqrt( d_eta*d_eta + d_phi*d_phi)
-    if ( exact ) :
-      if ( rel_pt < 1e-3 and dRval < 1e-3 ) :
-        return True 
-    else :
-      if ( rel_pt < 0.05 and dRval < 0.05 ) :
-        return True
-    return False
-   
-  def cleaning( self, jpsis,exact=True) :
-    c_jpsis =[]
-    for jpsi in jpsis :
-      duplicate = False
-      for c_jpsi in c_jpsis :
-        if ( self.isEqual (jpsi,c_jpsi,exact)) :
-          duplicate = True
-      if ( not duplicate ) :
-        c_jpsis.append(jpsi)
-    return c_jpsis
-
   def FillNtuple(self, jpsi_tuple, jpsiList, gen_jpsis) :
     for jpsi,match_list in jpsiList :
       if len(match_list) ==0 :
@@ -46,9 +22,6 @@ class JpsiAna(TopAna) :
         jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),0.0,0.0,jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs(),isFromB,isFromT)
 
   def Ana(self) :
-    if ( not self.checkInfile() ) :
-      sys.exit(-1)
-    
     events = Events(self.infile)
     goodVTXLabel, GVTX = "goodOfflinePrimaryVertices", Handle("std::vector<reco::Vertex>")
     catMuonLabel, catMuon = "catMuons", Handle("std::vector<cat::Muon>")
