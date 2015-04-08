@@ -22,7 +22,7 @@ class JpsiAna(TopAna) :
         jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),0.0,0.0,jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs(),isFromB,isFromT)
 
   def Ana(self) :
-    events = Events(self.infile)
+    events = self.events
     goodVTXLabel, GVTX = "goodOfflinePrimaryVertices", Handle("std::vector<reco::Vertex>")
     catMuonLabel, catMuon = "catMuons", Handle("std::vector<cat::Muon>")
     catElectronLabel, catElectron = "catElectrons", Handle("std::vector<cat::Electron>")

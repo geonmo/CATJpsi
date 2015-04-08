@@ -9,13 +9,20 @@ import os,math,sys,gc
 class AbsAna :
   outfile = None
   infile = None
-  def __init__(self,infile, outfile) :
-    self.infile = infile
+  events = None
+  def __init__(self,infiles, outfile) :
+    self.infiles = self.parsingInfile(infiles)
     self.outfile = outfile
     if ( not self.checkInfile() ) :
       print "ROOT file is not normal. Terminate analysis code."
       sys.exit(-1)
     pass
+    self.events = Events(self.infiles)
+
+  def parsingInfile(self, infiles) :
+    infiles = infiles.strip()
+    infile_list = infiles.replace("\"","").replace("\'","").replace("\n","").split(",")
+    return infile_list
   def isEqual( self, particle1, particle2, exact=True ) :
     rel_pt = abs((particle1.pt()-particle2.pt())/particle1.pt())
     d_eta = particle1.eta()-particle2.eta()
@@ -25,7 +32,7 @@ class AbsAna :
       if ( rel_pt < 1e-3 and dRval < 1e-3 ) :
         return True 
     else :
-      if ( rel_pt < 0.05 and dRval < 0.05 ) :
+      if ( rel_pt < 0.05 and dRval < 0.15 ) :
         return True
     return False
    
@@ -41,18 +48,20 @@ class AbsAna :
     return c_particles
 
   def checkInfile(self) :
-    print "Checking input file : %s"%(self.infile)
-    try :
-      file = TFile.Open(self.infile)
-    except :
-      print "File open error!"
-      return False
+    print self.infiles
+    for infile in self.infiles :
+      print "Checking input file : %s"%(infile)
+      try :
+        file = TFile.Open(infile)
+      except :
+        print "File open error!"
+        return False
 
-    if ( file.IsZombie()) :
-      print "%s is corruct!"%(infile)
-      return False
-    print "Open is success. It is a right root file."
-    file.Close()
+      if ( file.IsZombie()) :
+        print "%s is corruct!"%(infile)
+        return False
+      print "Open is success. It is a right root file."
+      file.Close()
     return True
     
 
