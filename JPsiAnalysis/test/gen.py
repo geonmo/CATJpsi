@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 from ROOT import *
+
+from CATJpsi.JPsiAnalysis.Jpsi import Jpsi
+from CATJpsi.JPsiAnalysis.Jet import Jet
+
 gSystem.Load("libFWCoreFWLite.so");
 gSystem.Load("libDataFormatsFWLite.so");
 AutoLibraryLoader.enable()
@@ -11,15 +15,17 @@ class JpsiAna(TopAna) :
   def __init__(self,infile, outfile) :
     TopAna.__init__(self,infile,outfile)
 
-  def FillNtuple(self, jpsi_tuple, jpsiList, gen_jpsis) :
+  def FillNtuple(self, jpsi_tuple, jpsiList) :
     for jpsi,match_list in jpsiList :
       if len(match_list) ==0 :
-        jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),0.0,0.0,jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs(),0,0);
+        isFromB = False
+        isFromT = False
+        jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs(),isFromB,isFromT,jpsi.muID(),jpsi.trackQuality() )
       else :
-        target_gen = gen_jpsis[match_list[0]]
+        target_gen = match_list[0]
         isFromB = self.isFromB( target_gen )
-        isFromT = self.isFromTop( target_gen) or self.isFromTopBar( target_gen) 
-        jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),0.0,0.0,jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs(),isFromB,isFromT)
+        isFromT = ( self.isFromTop( target_gen) or self.isFromTopBar( target_gen ) )
+        jpsi_tuple.Fill( jpsi.pt(), jpsi.eta(), jpsi.phi(),jpsi.mass(),jpsi.lxy(),jpsi.l3D(),jpsi.vProb(),jpsi.sigmalxy(),jpsi.dca(),jpsi.cxPtHypot(),jpsi.cxPtAbs(),isFromB,isFromT,jpsi.muID(),jpsi.trackQuality() )
 
   def Ana(self) :
     events = self.events
@@ -33,8 +39,8 @@ class JpsiAna(TopAna) :
 
     output = TFile(self.outfile,"RECREATE")
 
-    matched_jpsis_ntuple = TNtuple("matched_jpsis","Matched J/Psi's information","pt:eta:phi:mass:chi2:ndof:lxy:l3D:vProb:sigmalxy:dca:cxPtHypot:cxPtAbs:isFromB:isFromTop")
-    unmatched_jpsis_ntuple = TNtuple("unmatched_jpsis","UnMatched J/Psi's information","pt:eta:phi:mass:chi2:ndof:lxy:l3D:vProb:sigmalxy:dca:cxPtHypot:cxPtAbs:isFromB:isFromTop")
+    matched_jpsis_ntuple = TNtuple("matched_jpsis","Matched J/Psi's information",      "pt:eta:phi:mass:lxy:l3D:vProb:sigmalxy:dca:cxPtHypot:cxPtAbs:isFromB:isFromTop:muID:trackQuality")
+    unmatched_jpsis_ntuple = TNtuple("unmatched_jpsis","UnMatched J/Psi's information","pt:eta:phi:mass:lxy:l3D:vProb:sigmalxy:dca:cxPtHypot:cxPtAbs:isFromB:isFromTop:muID:trackQuality")
     found_jpsi  = TH1F("isMatchedJpsi","Matched J/#psi between gen and cat.",2,0,2)
     found_jpsi.GetXaxis().SetBinLabel(1,"Failed")
     found_jpsi.GetXaxis().SetBinLabel(2,"Successed")
@@ -49,17 +55,19 @@ class JpsiAna(TopAna) :
     isRD = False
 
 
-    jpsi_minPt = 4.0
+    jpsi_minPt = 1.0
 
     
     for iev,event in enumerate(events):
       event.getByLabel(catMuonLabel, catMuon)
       event.getByLabel(catSecVertexLabel, catSecVtx)
+      event.getByLabel(catJetLabel, catJet)
 
       secVtxs = []
       try :      
         muons = catMuon.product()
         #electrons = catElectron.product()
+        jets = catJet.product()
       except RuntimeError :
         print "Warning! CAT Muon product is null."
         continue
@@ -85,19 +93,33 @@ class JpsiAna(TopAna) :
         #if ( gen.pdgId() == 443 ) :
         if ( gen.pdgId() == 443 and gen.pt()>1.0 and abs(gen.eta())<2.5  and gen.mass()>3 and gen.mass()<3.2) :
           if ( gen.numberOfDaughters() ==2 ) :
-            if ( abs(gen.daughter(0).pdgId())==13 and abs(gen.daughter(1).pdgId())==13 ) :
-              gen_jpsis.append( gen )
+            if ( abs(gen.daughter(0).pdgId())==13 and abs(gen.daughter(1).pdgId())==13 ) : 
+              if ( gen.daughter(0).pt()>1 and gen.daughter(1).pt()>1 and abs(gen.daughter(0).eta())<2.5 and abs(gen.daughter(1).eta())<2.5 and gen.daughter(0).status()==1 and gen.daughter(1).status()==1 ) :
+                gen_jpsis.append( gen )
       c_gen_jpsis = self.cleaning( gen_jpsis,True)
       nGENJpsi.Fill( len(c_gen_jpsis))
       
 
       cat_jpsis=[]
+      cat_jpsis_extend =[]
+      jet_list  =[]
+      bjet_list =[]
+      for jet in jets :
+        t_jet = Jet(jet)
+        jet_list.append( t_jet )
+        if ( t_jet.isBTag()) :
+          bjet_list.append(t_jet)
+
       for cat_jpsi in secVtxs :
-        #if (True) :
-        #if ( cat_jpsi.pt()>1.0 and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 and cat_jpsi.vProb()>0.01 ) :
-        if ( cat_jpsi.pt()>jpsi_minPt and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 and cat_jpsi.vProb()>0.01 and cat_jpsi.dca()<0.05 and cat_jpsi.l3D()>0.2 ) :
-          cat_jpsis.append( cat_jpsi)
-      c_reco_jpsis = self.cleaning( cat_jpsis,False)
+        jpsi_lorentz = Jpsi(cat_jpsi)
+        jpsi_lorentz.JetDR ( jet_list )
+        jpsi_lorentz.BJetDR( jet_list )
+        if ( cat_jpsi.pt()>jpsi_minPt and abs(cat_jpsi.eta())<2.5 and cat_jpsi.mass()>3 and cat_jpsi.mass()<3.2 ) :
+          if ( cat_jpsi.vProb()>0.01 and cat_jpsi.dca()<0.05 and cat_jpsi.l3D()>0.2 and jpsi_lorentz.minBDR<0.5) :
+            cat_jpsis.append( jpsi_lorentz )
+            cat_jpsis_extend.append( jpsi_lorentz.minBDR ) 
+
+      c_reco_jpsis = self.cleaning( cat_jpsis ,False)
       nCATJpsi.Fill( len(c_reco_jpsis))
       
       matched_jpsis =[]
@@ -126,17 +148,17 @@ class JpsiAna(TopAna) :
       for reco_jpsi in c_reco_jpsis :
         matching= False
         match_pair = [] 
-        for idx,gen_jpsi in enumerate(c_gen_jpsis) :
+        for gen_jpsi in c_gen_jpsis :
           if ( self.isEqual( reco_jpsi, gen_jpsi,False) ) :
             matching = True
-            match_pair.append(idx)
+            match_pair.append(gen_jpsi)
         if ( matching ) :
             matched_jpsis.append( [reco_jpsi,match_pair])
         else :
             if ( not isRD and c_gen_jpsis>0 ) :
-              unmatched_jpsis.append( [reco_jpsi,match_pair])
+              unmatched_jpsis.append( [reco_jpsi,[]])
             elif (isRD) :
-              unmatched_jpsis.append( [reco_jpsi,match_pair])
+              unmatched_jpsis.append( [reco_jpsi,[]])
             else :  ## no genJ/psi on MC  
               continue
 
@@ -149,8 +171,8 @@ class JpsiAna(TopAna) :
         if ( len(c_gen_jpsis) >0 ) : cleaned_found_jpsi.Fill(0)
         found_jpsi.Fill(0)
 
-      self.FillNtuple(matched_jpsis_ntuple,matched_jpsis, c_gen_jpsis)
-      self.FillNtuple(unmatched_jpsis_ntuple,unmatched_jpsis, c_gen_jpsis)
+      self.FillNtuple(matched_jpsis_ntuple,matched_jpsis)
+      self.FillNtuple(unmatched_jpsis_ntuple,unmatched_jpsis)
 
     output.Write()
     output.Close()

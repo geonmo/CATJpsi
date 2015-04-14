@@ -114,7 +114,7 @@ class DecayAna(AbsAna) :
       nMuon[0] +=1
       for gen in genParticles :
         if (abs(gen.pdgId())==443 and gen.numberOfDaughters()==2) :
-          if ( abs(gen.daughter(0).pdgId())==13 and abs(gen.daughter(1).pdgId())==13) :
+          if ( abs(gen.daughter(0).pdgId())==13 and abs(gen.daughter(1).pdgId())==13 and gen.daughter(0).pt()>1 and gen.daughter(1).pt()>1 and abs(gen.daughter(0).eta())<2.5 and abs(gen.daughter(1).eta())<2.5) :
             gen_list.append( gen.daughter(0))
             gen_list.append( gen.daughter(1))
             nMuon[1] +=2
