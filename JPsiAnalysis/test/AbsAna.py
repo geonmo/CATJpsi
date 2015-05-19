@@ -66,11 +66,7 @@ class AbsAna :
     
 
   def Ana(self) :
-    if ( not self.checkInfile() ) :
-      sys.exit(-1)
-    output = TFile(self.outfile, "RECREATE")
-    output.Close()
-    return
+    pass
    
 if __name__ == "__main__" :
   infile = sys.argv[1]

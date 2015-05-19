@@ -1,0 +1,8 @@
+<library file="*.cc" name="CATJpsiJPsiAnalysisPlugin">
+  <use name="FWCore/Framework"/>
+  <use name="CATTools/DataFormats"/>
+  <use name="CATJpsi/JPsiAnalysis"/>  
+  <use name="CommonTools/UtilAlgos"/>
+  <use name="root"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
