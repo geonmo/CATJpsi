@@ -107,8 +107,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByLabel(vtxToken_, vertices);
-  if (vertices->empty()) return;
   //const reco::Vertex &PV = vertices->front();
+  if (vertices->empty()) return;
 
   
   

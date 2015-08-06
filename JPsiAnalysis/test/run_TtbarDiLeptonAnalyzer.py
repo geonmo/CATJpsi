@@ -4,7 +4,7 @@ process = cms.Process("TtbarDiLeptonAnalyzer")
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 #process.partonTop = cms.EDProducer("PartonTopProducer",genParticles = cms.InputTag("prunedGenParticles"))
 
