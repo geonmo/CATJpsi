@@ -12,7 +12,7 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames.append('/store/user/geonmo/cat_data/TTbarJet_fullLeptonicDecay_jpsiFiltered/catTuple_75.root')
+process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/user/geonmo/cat_data/TTbarJet_fullLeptonicDecay/catTuple_999.root')
 #for i in xrange(1,101):
 #/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_%d.root' % i)
 #    '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU40bx25_POSTLS170_V7-v2/00000/0A30732D-FA26-E411-9A59-E0CB4E29C4FD.root',
