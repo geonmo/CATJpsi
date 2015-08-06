@@ -107,9 +107,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByLabel(vtxToken_, vertices);
-  if (vertices->empty()) return; // skip the event if no PV found
+  if (vertices->empty()) return;
   //const reco::Vertex &PV = vertices->front();
 
+  
+  
   edm::Handle<edm::View<cat::Muon> > muons;
   iEvent.getByLabel(muonToken_, muons);
 
@@ -122,8 +124,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<edm::View<cat::MET> > mets;
   iEvent.getByLabel(metToken_, mets);
   edm::Handle<reco::GenParticleCollection> genParticles;
-  edm::Handle<int> partonTop_channel;
-  edm::Handle<vector<int> > partonTop_modes;
+  //edm::Handle<int> partonTop_channel;
+  //edm::Handle<vector<int> > partonTop_modes;
 
   if (runOnMC_){
     int nMuon = 0;
@@ -176,21 +178,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	b_genMode1 = gen_modes[0]; 
 	b_genMode2 = gen_modes[1]; 
 
-    iEvent.getByLabel(partonTop_channel_, partonTop_channel);
-    iEvent.getByLabel(partonTop_modes_, partonTop_modes);
-    if ( (*partonTop_modes).size() == 0 ) {
-		b_partonMode1 = 0;
-		b_partonMode2 = 0;
-	}
-    else if ( (*partonTop_modes).size() == 1 ) { b_partonMode2 = 0; }
-//    if ((*partonTop_modes).size() >= 2) {
-	else{
-        b_partonChannel = *partonTop_channel; 
-        b_partonMode1 = (*partonTop_modes)[0]; 
-        b_partonMode2 = (*partonTop_modes)[1]; 
-    }
-    //cout << "parton_channel   "<< *partonTop_channel<<endl;
-    //cout << "parton_mode      "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
   }
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
@@ -315,7 +302,7 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::El
 {
   vector<cat::Electron> selelecs;
   for (auto el : *elecs) {
-    if (!el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium")) continue;
+    if (!el.electronID("eidLoose")) continue;
     if (!el.passConversionVeto()) continue;
     if (!el.isPF()) continue;
     if (el.pt() <= 20.) continue;
