@@ -1,0 +1,12 @@
+<library file="*.cc" name="CATJpsiJPsiAnalysisPlugin">
+  <use name="FWCore/Framework"/>
+  <use name="FWCore/ParameterSet"/>
+  <use name="FWCore/ServiceRegistry"/>
+  <use name="CATTools/DataFormats"/>
+  <use name="CommonTools/UtilAlgos"/>
+  <use name="DataFormats/HepMCCandidate"/>
+  <use name="TopQuarkAnalysis/TopKinFitter"/>
+  <use name="FWCore/PluginManager"/>
+  <use name="root"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
