@@ -34,6 +34,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   elecToken_ = iConfig.getParameter<edm::InputTag>("electrons");
   jetToken_  = iConfig.getParameter<edm::InputTag>("jets");
   metToken_  = iConfig.getParameter<edm::InputTag>("mets");     
+  secToken_  = iConfig.getParameter<edm::InputTag>("secVtxs");     
   vtxToken_  = iConfig.getParameter<edm::InputTag>("vertices");
   mcLabel_   = iConfig.getParameter<edm::InputTag>("mcLabel");
   partonTop_channel_ = iConfig.getParameter<edm::InputTag>("partonTop_channel");
@@ -43,7 +44,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
   tmassstep_      = iConfig.getParameter<double>       ("tmassstep");
   nupars_         = iConfig.getParameter<vector<double> >("neutrino_parameters");
-  
+
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
   ttree_->Branch("gen_channel", &b_genChannel, "gen_channel/I");
@@ -71,6 +72,19 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
 
+  ttree_->Branch("jpsi_pt",&b_jpsi_pt);
+  ttree_->Branch("jpsi_eta",&b_jpsi_eta);
+  ttree_->Branch("jpsi_phi",&b_jpsi_phi);
+  ttree_->Branch("jpsi_mass",&b_jpsi_mass);
+  ttree_->Branch("jpsi_vProb",&b_jpsi_vProb);
+  ttree_->Branch("jpsi_l3D",&b_jpsi_l3D);
+  ttree_->Branch("jpsi_dca",&b_jpsi_dca);
+  ttree_->Branch("jpsi_muID",&b_jpsi_muID);
+  ttree_->Branch("jpsi_trackQuality",&b_jpsi_trackQuality);
+  ttree_->Branch("jpsi_minDR",&b_jpsi_minDR);
+  ttree_->Branch("jpsi_minBDR",&b_jpsi_minBDR);
+
+
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 {
@@ -83,10 +97,9 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 //
 
 // ------------ method called for each event  ------------
-// ------------ method called for each event  ------------
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  
+
   b_genChannel = -1; 
   b_genMode1 = -1;
   b_genMode2 = -1; 
@@ -102,22 +115,32 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
   b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
-
+  b_jpsi_pt.clear();
+  b_jpsi_eta.clear();
+  b_jpsi_phi.clear();
+  b_jpsi_mass.clear();
+  b_jpsi_vProb.clear();
+  b_jpsi_l3D.clear();
+  b_jpsi_dca.clear();
+  b_jpsi_muID.clear();
+  b_jpsi_trackQuality.clear();
+  b_jpsi_minDR.clear();
+  b_jpsi_minBDR.clear();
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
-  iEvent.getByLabel(vtxToken_, vertices);
+  if ( ! iEvent.getByLabel(vtxToken_, vertices)) return;
   //const reco::Vertex &PV = vertices->front();
   if (vertices->empty()) return;
 
-  
-  
+
+
   edm::Handle<edm::View<cat::Muon> > muons;
   iEvent.getByLabel(muonToken_, muons);
 
   edm::Handle<edm::View<cat::Electron> > electrons;
   iEvent.getByLabel(elecToken_, electrons);
-
+ 
   edm::Handle<edm::View<cat::Jet> > jets;
   iEvent.getByLabel(jetToken_, jets);
 
@@ -126,6 +149,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<reco::GenParticleCollection> genParticles;
   //edm::Handle<int> partonTop_channel;
   //edm::Handle<vector<int> > partonTop_modes;
+
+  edm::Handle<edm::View<cat::SecVertex> > svertxs ;
+  iEvent.getByLabel(secToken_, svertxs);
 
   if (runOnMC_){
     int nMuon = 0;
@@ -153,17 +179,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
       if (lep){
-          int mode = 1;
-          if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
-          else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
-          else if ( fabs(lep->pdgId()) == 15){
-              for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
-                  if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
-                  else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
-                  mode = 4;
-              }
+        int mode = 1;
+        if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
+        else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
+        else if ( fabs(lep->pdgId()) == 15){
+          for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
+            if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+            else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+            mode = 4;
           }
-          gen_modes.push_back(mode);
+        }
+        gen_modes.push_back(mode);
       }
     }
 
@@ -174,9 +200,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     const int nLepton = nElectron + nMuon;
     gen_channel = nLepton+1;
 
-	b_genChannel = gen_channel; 
-	b_genMode1 = gen_modes[0]; 
-	b_genMode2 = gen_modes[1]; 
+    b_genChannel = gen_channel; 
+    b_genMode1 = gen_modes[0]; 
+    b_genMode2 = gen_modes[1]; 
 
   }
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
@@ -198,7 +224,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep2_phi = recolep[1].Phi();
 
   if ((recolep[0].Pt() > 20) && (recolep[1].Pt() > 20) && (fabs(recolep[0].Eta()) < 2.4) && (fabs(recolep[1].Eta()) < 2.4)) b_inPhase = 1;
-  
+
   float channel = selectedElectrons.size();
 
   float ll_charge = 0. ;
@@ -212,7 +238,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   //  printf("selectedMuons %lu, selectedElectrons %lu, selectedJets %lu, selectedBJets %lu\n",selectedMuons.size(), selectedElectrons.size(), selectedJets.size(), selectedBJets.size() );
 
   TLorentzVector met = mets->front().tlv();
-  
+
   TLorentzVector tlv_ll = recolep[0]+recolep[1];
   b_ll_pt = tlv_ll.Pt();
   b_ll_eta = tlv_ll.Eta();
@@ -224,6 +250,31 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_nbjet = selectedBJets.size();
   b_channel = channel;
 
+  auto svtxs = svertxs.product();
+  for ( auto catJpsi = svtxs->begin(), end= svtxs->end() ; catJpsi != end ; ++catJpsi) {
+    b_jpsi_pt.push_back(catJpsi->pt());
+    b_jpsi_eta.push_back(catJpsi->eta());
+    b_jpsi_phi.push_back(catJpsi->phi());
+    b_jpsi_mass.push_back(catJpsi->mass());
+    b_jpsi_vProb.push_back(catJpsi->vProb());
+    b_jpsi_l3D.push_back(catJpsi->l3D());
+    b_jpsi_dca.push_back(catJpsi->dca());
+    b_jpsi_muID.push_back(catJpsi->muID());
+    b_jpsi_trackQuality.push_back(catJpsi->trackQuality());
+    float min_DR = 999;
+    float min_BDR = 999;
+
+    for (auto jet = selectedJets.begin(), end = selectedJets.end(); jet != end; ++jet){
+      float csv = jet->bDiscriminator("combinedSecondaryVertexBJetTags");
+      TLorentzVector jpsi_tlv = TLorentzVector(catJpsi->px(), catJpsi->py(),catJpsi->pz(),catJpsi->energy()); 
+      TLorentzVector jet_tlv = jet->tlv();
+      float deltaR = jpsi_tlv.DeltaR( jet_tlv) ;
+      if ( min_DR > deltaR ) min_DR = deltaR; 
+      if ( csv > 0.244 && min_BDR > deltaR) min_BDR = deltaR; 
+    }
+    b_jpsi_minDR.push_back( min_DR ); 
+    b_jpsi_minBDR.push_back( min_BDR ); 
+  }
   float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
   b_step = step;
 
@@ -239,29 +290,29 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       TLorentzVector nu11, nu12, nu21, nu22;
       TLorentzVector recojet1= jet1->tlv();
       TLorentzVector recojet2= jet2->tlv();
-      
+
       double xconstraint = recolep[0].Px()+recolep[1].Px()+ (recojet1).Px() + (recojet2).Px() +met.Px();
       double yconstraint = recolep[0].Py()+recolep[1].Py()+ (recojet2).Py() + (recojet1).Py() +met.Py();
-      
+
       solver->SetConstraints(xconstraint, yconstraint);
       TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( recolep[0], recolep[1] , recojet1, recojet2);
       weight1 = nuSol.weight;
       nu11 = leafToTLorentzVector(nuSol.neutrino);
       nu12 = leafToTLorentzVector(nuSol.neutrinoBar);
-      
+
       TtFullLepKinSolver::NeutrinoSolution nuSol2= solver->getNuSolution( recolep[0], recolep[1] , recojet2, recojet1);
       weight2 = nuSol2.weight;
       nu21 = leafToTLorentzVector(nuSol2.neutrino);
       nu22 = leafToTLorentzVector(nuSol2.neutrinoBar);
       if (weight1 > maxweight || weight2 > maxweight){
-	if(weight1>weight2 && weight1>0){
-	  maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
-	  top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
-	}
-	else if(weight2>weight1 && weight2>0){
-	  maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
-	  top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
-	}
+        if(weight1>weight2 && weight1>0){
+          maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
+          top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
+        }
+        else if(weight2>weight1 && weight2>0){
+          maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
+          top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
+        }
       }
     }
   }
@@ -370,38 +421,38 @@ float TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass,
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
+  void 
 TtbarDiLeptonAnalyzer::beginJob()
 {
   solver = new TtFullLepKinSolver(tmassbegin_, tmassend_, tmassstep_, nupars_);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
+  void 
 TtbarDiLeptonAnalyzer::endJob() 
 {
 }
 
 // ------------ method called when starting to processes a run  ------------
-void 
+  void 
 TtbarDiLeptonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 
 // ------------ method called when ending the processing of a run  ------------
-void 
+  void 
 TtbarDiLeptonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 
 // ------------ method called when starting to processes a luminosity block  ------------
-void 
+  void 
 TtbarDiLeptonAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 
 // ------------ method called when ending the processing of a luminosity block  ------------
-void 
+  void 
 TtbarDiLeptonAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
