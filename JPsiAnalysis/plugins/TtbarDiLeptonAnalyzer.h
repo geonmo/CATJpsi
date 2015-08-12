@@ -78,8 +78,8 @@ class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
 
     typedef std::vector<float> floats;
     typedef std::vector<int> ints;
-    floats b_jpsi_pt, b_jpsi_eta, b_jpsi_phi,b_jpsi_mass;
-    floats b_jpsi_vProb, b_jpsi_l3D, b_jpsi_dca,b_jpsi_muID, b_jpsi_trackQuality, b_jpsi_minDR, b_jpsi_minBDR;
+    floats * b_jpsi_pt, * b_jpsi_eta, * b_jpsi_phi, * b_jpsi_mass;
+    floats * b_jpsi_vProb, * b_jpsi_l3D, * b_jpsi_dca, * b_jpsi_muID, * b_jpsi_trackQuality, * b_jpsi_minDR, * b_jpsi_minBDR;
 
     TtFullLepKinSolver* solver;
     double tmassbegin_, tmassend_, tmassstep_;

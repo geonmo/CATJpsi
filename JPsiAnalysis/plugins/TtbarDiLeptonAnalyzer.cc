@@ -72,6 +72,18 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
 
+  b_jpsi_pt = new floats;
+  b_jpsi_eta = new floats;
+  b_jpsi_phi = new floats;
+  b_jpsi_mass = new floats;
+  b_jpsi_vProb = new floats;
+  b_jpsi_l3D = new floats;
+  b_jpsi_dca = new floats;
+  b_jpsi_muID = new floats;
+  b_jpsi_trackQuality = new floats;
+  b_jpsi_minDR = new floats;
+  b_jpsi_minBDR = new floats;
+
   ttree_->Branch("jpsi_pt",&b_jpsi_pt);
   ttree_->Branch("jpsi_eta",&b_jpsi_eta);
   ttree_->Branch("jpsi_phi",&b_jpsi_phi);
@@ -83,7 +95,6 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("jpsi_trackQuality",&b_jpsi_trackQuality);
   ttree_->Branch("jpsi_minDR",&b_jpsi_minDR);
   ttree_->Branch("jpsi_minBDR",&b_jpsi_minBDR);
-
 
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -115,17 +126,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
   b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
-  b_jpsi_pt.clear();
-  b_jpsi_eta.clear();
-  b_jpsi_phi.clear();
-  b_jpsi_mass.clear();
-  b_jpsi_vProb.clear();
-  b_jpsi_l3D.clear();
-  b_jpsi_dca.clear();
-  b_jpsi_muID.clear();
-  b_jpsi_trackQuality.clear();
-  b_jpsi_minDR.clear();
-  b_jpsi_minBDR.clear();
+  b_jpsi_pt->clear();
+  b_jpsi_eta->clear();
+  b_jpsi_phi->clear();
+  b_jpsi_mass->clear();
+  b_jpsi_vProb->clear();
+  b_jpsi_l3D->clear();
+  b_jpsi_dca->clear();
+  b_jpsi_muID->clear();
+  b_jpsi_trackQuality->clear();
+  b_jpsi_minDR->clear();
+  b_jpsi_minBDR->clear();
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
@@ -252,15 +263,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   auto svtxs = svertxs.product();
   for ( auto catJpsi = svtxs->begin(), end= svtxs->end() ; catJpsi != end ; ++catJpsi) {
-    b_jpsi_pt.push_back(catJpsi->pt());
-    b_jpsi_eta.push_back(catJpsi->eta());
-    b_jpsi_phi.push_back(catJpsi->phi());
-    b_jpsi_mass.push_back(catJpsi->mass());
-    b_jpsi_vProb.push_back(catJpsi->vProb());
-    b_jpsi_l3D.push_back(catJpsi->l3D());
-    b_jpsi_dca.push_back(catJpsi->dca());
-    b_jpsi_muID.push_back(catJpsi->muID());
-    b_jpsi_trackQuality.push_back(catJpsi->trackQuality());
+    b_jpsi_pt->push_back(catJpsi->pt());
+    b_jpsi_eta->push_back(catJpsi->eta());
+    b_jpsi_phi->push_back(catJpsi->phi());
+    b_jpsi_mass->push_back(catJpsi->mass());
+    b_jpsi_vProb->push_back(catJpsi->vProb());
+    b_jpsi_l3D->push_back(catJpsi->l3D());
+    b_jpsi_dca->push_back(catJpsi->dca());
+    b_jpsi_muID->push_back(catJpsi->muID());
+    b_jpsi_trackQuality->push_back(catJpsi->trackQuality());
     float min_DR = 999;
     float min_BDR = 999;
 
@@ -272,8 +283,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       if ( min_DR > deltaR ) min_DR = deltaR; 
       if ( csv > 0.244 && min_BDR > deltaR) min_BDR = deltaR; 
     }
-    b_jpsi_minDR.push_back( min_DR ); 
-    b_jpsi_minBDR.push_back( min_BDR ); 
+    b_jpsi_minDR->push_back( min_DR ); 
+    b_jpsi_minBDR->push_back( min_BDR ); 
   }
   float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
   b_step = step;

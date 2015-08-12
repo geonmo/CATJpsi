@@ -9,6 +9,11 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 #process.source.skipEvents=cms.untracked.uint32(7000)
 
 ## to suppress the long output at the end of the job
+process.options = cms.untracked.PSet(
+    #allowUnscheduled = cms.untracked.bool(True),
+    wantSummary = cms.untracked.bool(True), 
+    SkipEvent = cms.untracked.vstring('ProductNotFound'),
+)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(),)
 
