@@ -11,7 +11,6 @@ gSystem.Load("libDataFormatsFWLite.so");
 AutoLibraryLoader.enable()
 from DataFormats.FWLite import Events, Handle
 import os,math,sys
-import copy
 
 c_modes = ['MuMu','MuEl','ElEl']
 steps = range(6)[1:]
@@ -74,8 +73,8 @@ class JpsiAna :
         self.hist[(mode,step, 'jpsi_eta') ].Fill( jpsi.Eta())
         self.hist[(mode,step, 'jpsi_phi') ].Fill( jpsi.Phi())
         self.hist[(mode,step, 'jpsi_mass') ].Fill( jpsi.M() )
-        self.hist[(mode,step, 'jpsi_vProb') ].Fill( jpsi.vProb )
-        self.hist[(mode,step, 'jpsi_l3D') ].Fill(jpsi.l3D)
+        self.hist[(mode,step, 'jpsi_vProb') ].Fill( jpsi.vProb() )
+        self.hist[(mode,step, 'jpsi_l3D') ].Fill(jpsi.l3D())
         l1jpsi,l2jpsi,lep1,lep2 = None, None, None, None
         if ( mode =="MuMu") :
           lep1 = muons[0]

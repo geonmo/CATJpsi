@@ -57,15 +57,17 @@ class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
     TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
     {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
 
-    edm::InputTag     muonToken_;
-    edm::InputTag  elecToken_;
-    edm::InputTag      jetToken_;
-    edm::InputTag       metToken_;
-    edm::InputTag       secToken_;
-    edm::InputTag  vtxToken_;
+    edm::InputTag muonToken_;
+    edm::InputTag elecToken_;
+    edm::InputTag jetToken_;
+    edm::InputTag metToken_;
+    edm::InputTag secToken_;
+    edm::InputTag vtxToken_;
     edm::InputTag mcLabel_;
-    edm::InputTag          partonTop_channel_;
+    edm::InputTag partonTop_channel_;
     edm::InputTag partonTop_modes_;
+
+    int sysEnergy_;
 
     TTree * ttree_;
     int b_genChannel, b_genMode1, b_genMode2, b_partonChannel, b_partonMode1, b_partonMode2;
@@ -79,14 +81,15 @@ class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
     typedef std::vector<float> floats;
     typedef std::vector<int> ints;
     floats * b_jpsi_pt, * b_jpsi_eta, * b_jpsi_phi, * b_jpsi_mass;
-    floats * b_jpsi_vProb, * b_jpsi_l3D, * b_jpsi_dca, * b_jpsi_muID, * b_jpsi_trackQuality, * b_jpsi_minDR, * b_jpsi_minBDR;
-
+    floats * b_jpsi_vProb, * b_jpsi_l3D, * b_jpsi_dca, * b_jpsi_minDR, * b_jpsi_minBDR;
+    ints * b_jpsi_muID, * b_jpsi_trackQuality;
     TtFullLepKinSolver* solver;
     double tmassbegin_, tmassend_, tmassstep_;
     vector<double> nupars_;
 
     bool runOnMC_;
     int gen_channel;
+    
     std::vector<int> gen_modes;
     //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
     //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };

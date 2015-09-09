@@ -44,6 +44,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
   tmassstep_      = iConfig.getParameter<double>       ("tmassstep");
   nupars_         = iConfig.getParameter<vector<double> >("neutrino_parameters");
+  sysEnergy_      = iConfig.getParameter<int >("central_energy");
 
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
@@ -79,8 +80,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   b_jpsi_vProb = new floats;
   b_jpsi_l3D = new floats;
   b_jpsi_dca = new floats;
-  b_jpsi_muID = new floats;
-  b_jpsi_trackQuality = new floats;
+  b_jpsi_muID = new ints;
+  b_jpsi_trackQuality = new ints;
   b_jpsi_minDR = new floats;
   b_jpsi_minBDR = new floats;
 
@@ -270,18 +271,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_jpsi_vProb->push_back(catJpsi->vProb());
     b_jpsi_l3D->push_back(catJpsi->l3D());
     b_jpsi_dca->push_back(catJpsi->dca());
-    b_jpsi_muID->push_back(catJpsi->muID());
+    int mu_id = catJpsi->muID();
+    b_jpsi_muID->push_back( (mu_id&1) + (mu_id&2));
     b_jpsi_trackQuality->push_back(catJpsi->trackQuality());
     float min_DR = 999;
     float min_BDR = 999;
 
+    TLorentzVector jpsi_tlv = TLorentzVector( catJpsi->px(), catJpsi->py(), catJpsi->pz(), catJpsi->energy());
     for (auto jet = selectedJets.begin(), end = selectedJets.end(); jet != end; ++jet){
-      float csv = jet->bDiscriminator("combinedSecondaryVertexBJetTags");
-      TLorentzVector jpsi_tlv = TLorentzVector(catJpsi->px(), catJpsi->py(),catJpsi->pz(),catJpsi->energy()); 
       TLorentzVector jet_tlv = jet->tlv();
       float deltaR = jpsi_tlv.DeltaR( jet_tlv) ;
       if ( min_DR > deltaR ) min_DR = deltaR; 
-      if ( csv > 0.244 && min_BDR > deltaR) min_BDR = deltaR; 
+    }
+    for (auto bjet = selectedBJets.begin(), end = selectedBJets.end(); bjet != end; ++bjet){
+      TLorentzVector bjet_tlv = bjet->tlv();
+      float deltaR = jpsi_tlv.DeltaR( bjet_tlv);
+      if ( min_BDR > deltaR ) min_BDR = deltaR; 
     }
     b_jpsi_minDR->push_back( min_DR ); 
     b_jpsi_minBDR->push_back( min_BDR ); 
@@ -397,11 +402,23 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* je
 vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
 {
   vector<cat::Jet> selBjets;
-  for (auto jet : jets) {
-    float jets_CSVInclV2 = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-    if (jets_CSVInclV2 <= 0.814) continue;	
-    //printf("b jet with pt %4.1f\n", jet.pt());
-    selBjets.push_back(jet);
+  if ( sysEnergy_ == 13 ) {
+    for (auto jet : jets) {
+      float jets_CSVInclV2 = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+      if (jets_CSVInclV2 <= 0.814) continue;	
+      //printf("b jet with pt %4.1f\n", jet.pt());
+      selBjets.push_back(jet);
+    }
+  }
+  else if (sysEnergy_ == 8 ) {
+    for (auto jet : jets) {
+      float jets_CSV = jet.bDiscriminator("combinedSecondaryVertexBJetTags");
+      if ( jets_CSV <= 0.244) continue ;
+      selBjets.push_back(jet); 
+    }
+  }
+  else {
+    std::cout<<"System Energy must be 8TeV or 13TeV at this script."<<std::endl;
   }
   return selBjets;
 }

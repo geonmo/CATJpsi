@@ -19,12 +19,12 @@ class Jpsi(TLorentzVector) :
   def JetDR ( self, jet_list ) :
     for jet in jet_list :
       deltaR = self.DeltaR( jet)
-      if ( deltaR < self.minDR ) : self.minDR = deltaR
+      if ( deltaR < self.minDR_ ) : self.minDR_ = deltaR
   def BJetDR( self, jet_list ) :
     for jet in jet_list :
       if ( jet.isBTag()) : 
         deltaR = self.DeltaR( jet)
-        if ( deltaR < self.minBDR ) : self.minBDR = deltaR
+        if ( deltaR < self.minBDR_ ) : self.minBDR_ = deltaR
   def pt( self ) :
     return self.Pt()        
   def eta(self ) :
