@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<MethodSetup Method="LD::LD">
+  <GeneralInfo>
+    <Info name="TMVA Release" value="4.2.1 [262657]"/>
+    <Info name="ROOT Release" value="6.04/02 [394242]"/>
+    <Info name="Creator" value="geonmo"/>
+    <Info name="Date" value="Thu Sep 10 17:32:05 2015"/>
+    <Info name="Host" value="Linux lcgapp-slc6-x86-64-21.cern.ch 2.6.32-504.23.4.el6.x86_64 #1 SMP Wed Jun 10 07:47:59 CEST 2015 x86_64 x86_64 x86_64 GNU/Linux"/>
+    <Info name="Dir" value="/home/geonmo/bdt2"/>
+    <Info name="Training events" value="1200"/>
+    <Info name="TrainingTime" value="1.77598000e-03"/>
+    <Info name="AnalysisType" value="Classification"/>
+  </GeneralInfo>
+  <Options>
+    <Option name="V" modified="Yes">False</Option>
+    <Option name="VerbosityLevel" modified="No">Default</Option>
+    <Option name="VarTransform" modified="Yes">None</Option>
+    <Option name="H" modified="Yes">True</Option>
+    <Option name="CreateMVAPdfs" modified="Yes">True</Option>
+    <Option name="IgnoreNegWeightsInTraining" modified="No">False</Option>
+  </Options>
+  <Variables NVar="10">
+    <Variable VarIndex="0" Expression="jpsi_pt" Label="jpsi_pt" Title="jpsi_pt" Unit="" Internal="jpsi_pt" Type="F" Min="8.62565488e-02" Max="2.55842896e+02"/>
+    <Variable VarIndex="1" Expression="jpsi_eta" Label="jpsi_eta" Title="jpsi_eta" Unit="" Internal="jpsi_eta" Type="F" Min="-2.90122294e+00" Max="4.39363384e+00"/>
+    <Variable VarIndex="2" Expression="jpsi_phi" Label="jpsi_phi" Title="jpsi_phi" Unit="" Internal="jpsi_phi" Type="F" Min="-3.13265371e+00" Max="3.14061499e+00"/>
+    <Variable VarIndex="3" Expression="jpsi_lxy" Label="jpsi_lxy" Title="jpsi_lxy" Unit="" Internal="jpsi_lxy" Type="F" Min="3.11450131e-04" Max="9.45371914e+00"/>
+    <Variable VarIndex="4" Expression="jpsi_vProb" Label="jpsi_vProb" Title="jpsi_vProb" Unit="" Internal="jpsi_vProb" Type="F" Min="6.28686337e-07" Max="9.98821259e-01"/>
+    <Variable VarIndex="5" Expression="jpsi_dca" Label="jpsi_dca" Title="jpsi_dca" Unit="" Internal="jpsi_dca" Type="F" Min="3.24249268e-05" Max="4.98838425e-02"/>
+    <Variable VarIndex="6" Expression="jpsi_muID" Label="jpsi_muID" Title="jpsi_muID" Unit="" Internal="jpsi_muID" Type="I" Min="1.00000000e+00" Max="3.00000000e+00"/>
+    <Variable VarIndex="7" Expression="jpsi_trackQuality" Label="jpsi_trackQuality" Title="jpsi_trackQuality" Unit="" Internal="jpsi_trackQuality" Type="I" Min="1.00000000e+00" Max="7.00000000e+00"/>
+    <Variable VarIndex="8" Expression="jpsi_minJetDR" Label="jpsi_minJetDR" Title="jpsi_minJetDR" Unit="" Internal="jpsi_minJetDR" Type="F" Min="6.31332514e-05" Max="4.67943430e+00"/>
+    <Variable VarIndex="9" Expression="jpsi_minBJetDR" Label="jpsi_minBJetDR" Title="jpsi_minBJetDR" Unit="" Internal="jpsi_minBJetDR" Type="F" Min="6.31332514e-05" Max="5.26783037e+00"/>
+  </Variables>
+  <Spectators NSpec="0"/>
+  <Classes NClass="2">
+    <Class Name="Signal" Index="0"/>
+    <Class Name="Background" Index="1"/>
+  </Classes>
+  <Transformations NTransformations="0"/>
+  <MVAPdfs>
+    <PDF Name="LD_PDFSig" MinNSmooth="10" MaxNSmooth="10" InterpolMethod="2" KDE_type="1" KDE_iter="1" KDE_border="1" KDE_finefactor="1.0000000000000000e+00">
+      <Histogram Name="LD_tr_S_original" NBins="50" XMin="-1.2913385629653931e+00" XMax="7.8091651201248169e-01" HasEquidistantBins="1">
+        0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 4.02138397e-02 4.02138397e-02 8.04276793e-02 8.04276793e-02 4.02138397e-02 4.02138397e-02 0.00000000e+00 2.41283038e-01 1.20641519e-01 1.20641519e-01 2.41283038e-01 1.60855359e-01 4.42352236e-01 4.02138397e-01 4.42352236e-01 4.02138397e-01 4.02138397e-01 5.22779916e-01 6.83635274e-01 1.60855359e+00 2.41283038e+00 2.45304422e+00 1.97047814e+00 1.93026430e+00 2.13133350e+00 1.64876743e+00 1.48791207e+00 1.36727055e+00 9.65132152e-01 5.22779916e-01 2.41283038e-01 2.01069198e-01 2.81496878e-01 2.01069198e-01 1.60855359e-01 0.00000000e+00 4.02138397e-02 0.00000000e+00 0.00000000e+00 0.00000000e+00 
+      </Histogram>
+    </PDF>
+    <PDF Name="LD_PDFBkg" MinNSmooth="10" MaxNSmooth="10" InterpolMethod="2" KDE_type="1" KDE_iter="1" KDE_border="1" KDE_finefactor="1.0000000000000000e+00">
+      <Histogram Name="LD_tr_B_original" NBins="50" XMin="-1.2913385629653931e+00" XMax="7.8091651201248169e-01" HasEquidistantBins="1">
+        4.02809746e-02 8.05619492e-02 0.00000000e+00 8.05619492e-02 1.61123898e-01 8.05619492e-02 2.01404873e-01 4.02809746e-02 1.20842924e-01 4.02809746e-01 6.04214619e-01 7.65338518e-01 7.65338518e-01 5.63933645e-01 1.12786729e+00 7.65338518e-01 7.65338518e-01 1.36955314e+00 1.08758631e+00 1.73208191e+00 1.36955314e+00 1.12786729e+00 1.69180093e+00 1.57095801e+00 1.45011509e+00 1.04730534e+00 1.45011509e+00 7.25057543e-01 9.66743391e-01 6.84776569e-01 5.63933645e-01 3.22247797e-01 8.05619492e-02 1.20842924e-01 4.02809746e-02 4.02809746e-02 4.02809746e-02 0.00000000e+00 0.00000000e+00 0.00000000e+00 4.02809746e-02 0.00000000e+00 0.00000000e+00 4.02809746e-02 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 
+      </Histogram>
+    </PDF>
+  </MVAPdfs>
+  <Weights NOut="1" NCoeff="11">
+    <Coefficient IndexOut="0" IndexCoeff="0" Value="1.9715449779400743e-01"/>
+    <Coefficient IndexOut="0" IndexCoeff="1" Value="-5.5110730124517410e-04"/>
+    <Coefficient IndexOut="0" IndexCoeff="2" Value="1.5890585271653788e-02"/>
+    <Coefficient IndexOut="0" IndexCoeff="3" Value="-1.6323646025313120e-03"/>
+    <Coefficient IndexOut="0" IndexCoeff="4" Value="1.3728534811621410e-01"/>
+    <Coefficient IndexOut="0" IndexCoeff="5" Value="-5.5045560188578646e-01"/>
+    <Coefficient IndexOut="0" IndexCoeff="6" Value="-1.4901512615270816e+01"/>
+    <Coefficient IndexOut="0" IndexCoeff="7" Value="1.8926830975470512e-03"/>
+    <Coefficient IndexOut="0" IndexCoeff="8" Value="3.9607500057677061e-02"/>
+    <Coefficient IndexOut="0" IndexCoeff="9" Value="-1.5463794609535125e-01"/>
+    <Coefficient IndexOut="0" IndexCoeff="10" Value="-4.0316024651315674e-03"/>
+  </Weights>
+</MethodSetup>
