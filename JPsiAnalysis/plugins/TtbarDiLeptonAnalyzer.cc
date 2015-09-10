@@ -44,7 +44,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
   tmassstep_      = iConfig.getParameter<double>       ("tmassstep");
   nupars_         = iConfig.getParameter<vector<double> >("neutrino_parameters");
-  sysEnergy_      = iConfig.getParameter<int >("central_energy");
+  sysEnergy_      = iConfig.getParameter<int >("energy");
 
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
