@@ -46,15 +46,6 @@ catJpsiAnalyzer::catJpsiAnalyzer(const edm::ParameterSet& iConfig)
   sysEnergy_      = iConfig.getParameter<int >("energy");
 
   edm::Service<TFileService> fs;
-  ttree_ = fs->make<TTree>("tree", "tree");
-  ttree_->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
-  ttree_->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
-  ttree_->Branch("lep1_phi", &b_lep1_phi, "lep1_phi/F");
-  ttree_->Branch("lep1_m", &b_lep1_m, "lep1_m/F");
-  ttree_->Branch("lep2_pt", &b_lep2_pt, "lep2_pt/F");
-  ttree_->Branch("lep2_eta", &b_lep2_eta, "lep2_eta/F");
-  ttree_->Branch("lep2_phi", &b_lep2_phi, "lep2_phi/F");
-  ttree_->Branch("lep2_m", &b_lep2_m, "lep2_m/F");
 
   matchedtree_ = fs->make<TTree>("matched", "matched");
   matchedtree_->Branch("jpsi_pt",&b_mjpsi_pt);
@@ -103,10 +94,6 @@ bool catJpsiAnalyzer::isEqual( TLorentzVector& gen, TLorentzVector& reco, bool e
 void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-  b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9, b_lep1_m = -9;
-  b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9, b_lep2_m = -9;
-
-
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
@@ -154,27 +141,13 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   for (auto lep : selectedMuons){ recolep.push_back(lep.tlv()); }
   for (auto lep : selectedElectrons){ recolep.push_back(lep.tlv()); }
   if (recolep.size() != 2){
-    ttree_->Fill();
+    //ttree_->Fill();
     return;
   }
-
-  b_lep1_pt = recolep[0].Pt();
-  b_lep1_eta = recolep[0].Eta();
-  b_lep1_phi = recolep[0].Phi();
-  b_lep1_m = recolep[0].M();
-  b_lep2_pt = recolep[1].Pt();
-  b_lep2_eta = recolep[1].Eta();
-  b_lep2_phi = recolep[1].Phi();
-  b_lep2_m = recolep[1].M();
-
   vector<cat::Jet> selectedJets = selectJets( jets.product(), recolep );
   vector<cat::Jet> selectedBJets = selectBJets( selectedJets );
 
   //  printf("selectedMuons %lu, selectedElectrons %lu, selectedJets %lu, selectedBJets %lu\n",selectedMuons.size(), selectedElectrons.size(), selectedJets.size(), selectedBJets.size() );
-
-  TLorentzVector met = mets->front().tlv();
-
-  TLorentzVector tlv_ll = recolep[0]+recolep[1];
 
   auto svtxs = svertxs.product();
   std::vector< cat::SecVertex > new_catJpsi;
@@ -192,10 +165,8 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     }
     if ( !duplicate ) new_catJpsi.push_back( *catJpsi) ;
   }
-  
-  if ( new_catJpsi.size() >0 ) { 
-    //std::cout<<"Size of new_catJpsi : "<<new_catJpsi.size()<<std::endl; 
 
+  if ( new_catJpsi.size() >0 ) { 
     for ( auto catJpsi = new_catJpsi.begin(), end= new_catJpsi.end() ; catJpsi != end ; ++catJpsi) {
       bool matched = false;
       float min_deltaR=999.;
@@ -210,7 +181,6 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       if ( matched) matched_catJpsi_pair.push_back( std::make_pair<float&, cat::SecVertex*>(min_deltaR, &*catJpsi)  );
       else unmatched_catJpsi.push_back( *catJpsi);
     }
-    //std::cout<<"matched : "<<matched_catJpsi_pair.size()<<"  unmatched : "<<unmatched_catJpsi.size()<<std::endl;
     std::sort( matched_catJpsi_pair.begin(), matched_catJpsi_pair.end(), compareGenDR);
 
     if ( matched_catJpsi_pair.size()>0) {
@@ -229,18 +199,20 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
         float deltaR = jpsi_tlv.DeltaR( bjet_tlv);
         if ( min_BDR > deltaR ) min_BDR = deltaR; 
       }
-      b_mjpsi_pt=(catJpsi->pt());
-      b_mjpsi_eta=(catJpsi->eta());
-      b_mjpsi_phi=(catJpsi->phi());
-      b_mjpsi_m=(catJpsi->mass());
-      b_mjpsi_vProb=(catJpsi->vProb());
-      b_mjpsi_lxy=(catJpsi->lxy());
-      b_mjpsi_dca=(catJpsi->dca());
-      b_mjpsi_muID=( (mu_id&1) + (mu_id&2));
-      b_mjpsi_trackQuality=(catJpsi->trackQuality());
-      b_mjpsi_minJetDR=( min_DR ); 
-      b_mjpsi_minBJetDR=( min_BDR );
-      matchedtree_->Fill(); 
+      if ( min_BDR<10) {
+        b_mjpsi_pt=(catJpsi->pt());
+        b_mjpsi_eta=(catJpsi->eta());
+        b_mjpsi_phi=(catJpsi->phi());
+        b_mjpsi_m=(catJpsi->mass());
+        b_mjpsi_vProb=(catJpsi->vProb());
+        b_mjpsi_lxy=(catJpsi->lxy());
+        b_mjpsi_dca=(catJpsi->dca());
+        b_mjpsi_muID=( (mu_id&1) + (mu_id&2));
+        b_mjpsi_trackQuality=(catJpsi->trackQuality());
+        b_mjpsi_minJetDR=( min_DR ); 
+        b_mjpsi_minBJetDR=( min_BDR );
+        matchedtree_->Fill(); 
+      }
     }
 
     for ( auto catJpsi = unmatched_catJpsi.begin(), end= unmatched_catJpsi.end() ; catJpsi != end ; ++catJpsi){
@@ -258,21 +230,22 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
         float deltaR = jpsi_tlv.DeltaR( bjet_tlv);
         if ( min_BDR > deltaR ) min_BDR = deltaR; 
       }
-      b_ujpsi_pt=(catJpsi->pt());
-      b_ujpsi_eta=(catJpsi->eta());
-      b_ujpsi_phi=(catJpsi->phi());
-      b_ujpsi_m=(catJpsi->mass());
-      b_ujpsi_vProb=(catJpsi->vProb());
-      b_ujpsi_lxy=(catJpsi->lxy());
-      b_ujpsi_dca=(catJpsi->dca());
-      b_ujpsi_muID=( (mu_id&1) + (mu_id&2));
-      b_ujpsi_trackQuality=(catJpsi->trackQuality());
-      b_ujpsi_minJetDR=( min_DR ); 
-      b_ujpsi_minBJetDR=( min_BDR );
-      unmatchedtree_->Fill(); 
+      if ( min_BDR<10) {
+        b_ujpsi_pt=(catJpsi->pt());
+        b_ujpsi_eta=(catJpsi->eta());
+        b_ujpsi_phi=(catJpsi->phi());
+        b_ujpsi_m=(catJpsi->mass());
+        b_ujpsi_vProb=(catJpsi->vProb());
+        b_ujpsi_lxy=(catJpsi->lxy());
+        b_ujpsi_dca=(catJpsi->dca());
+        b_ujpsi_muID=( (mu_id&1) + (mu_id&2));
+        b_ujpsi_trackQuality=(catJpsi->trackQuality());
+        b_ujpsi_minJetDR=( min_DR ); 
+        b_ujpsi_minBJetDR=( min_BDR );
+        unmatchedtree_->Fill(); 
+      }
     } 
   }
-  ttree_->Fill();
 }
 
 const reco::Candidate* catJpsiAnalyzer::getLast(const reco::Candidate* p)

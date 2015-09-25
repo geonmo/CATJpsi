@@ -1,8 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("TtbarDiLeptonAnalyzer")
-process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
-#process.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
@@ -31,7 +29,8 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     tmassbegin = cms.double(100),
     tmassend   = cms.double(300),
     tmassstep  = cms.double(  1),
-    neutrino_parameters = cms.vdouble(27.23,53.88,19.92,53.89,19.9)
+    neutrino_parameters = cms.vdouble(27.23,53.88,19.92,53.89,19.9),
+    energy = cms.int32(8),
 )
 
 process.TFileService = cms.Service("TFileService",
@@ -39,4 +38,4 @@ process.TFileService = cms.Service("TFileService",
 ))
 
 process.p = cms.Path(process.ttll)
-#process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
