@@ -84,6 +84,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   b_jpsi_trackQuality = new ints;
   b_jpsi_minDR = new floats;
   b_jpsi_minBDR = new floats;
+  b_jpsi_mva = new floats;
+  
 
   ttree_->Branch("jpsi_pt",&b_jpsi_pt);
   ttree_->Branch("jpsi_eta",&b_jpsi_eta);
@@ -96,6 +98,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("jpsi_trackQuality",&b_jpsi_trackQuality);
   ttree_->Branch("jpsi_minDR",&b_jpsi_minDR);
   ttree_->Branch("jpsi_minBDR",&b_jpsi_minBDR);
+  ttree_->Branch("jpsi_mva",&b_jpsi_mva);
 
   ttree_->Branch("ljpsi1_pt", &b_ljpsi1_pt);
   ttree_->Branch("ljpsi1_eta",&b_ljpsi1_eta);
@@ -106,8 +109,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ljpsi2_phi",&b_ljpsi2_phi);
   ttree_->Branch("ljpsi2_m",  &b_ljpsi2_m);
 
-
-
+  string dummy[] =  { "jpsi_pt", "jpsi_eta", "jpsi_phi", "jpsi_lxy", "jpsi_vProb", "jpsi_dca", "jpsi_muID", "jpsi_trackQuality", "jpsi_minJetDR", "jpsi_minBJetDR" };
+  vector< string > dummy_jpsi_label;
+  dummy_jpsi_label.assign( dummy, dummy+10);
+  bdt_ = new ReadBDT(dummy_jpsi_label);
 
 
 }
@@ -115,6 +120,9 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 {
   // do anything here that needs to be done at desctruction time
   // (e.g. close files, deallocate resources etc.)
+  //
+  //
+  delete bdt_;
 }
 
 //
@@ -151,6 +159,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_jpsi_trackQuality->clear();
   b_jpsi_minDR->clear();
   b_jpsi_minBDR->clear();
+  b_jpsi_mva->clear();
+
   b_ljpsi1_pt = -9; b_ljpsi1_eta = -1; b_ljpsi1_phi = -1; b_ljpsi1_m = -9;
   b_ljpsi2_pt = -9; b_ljpsi2_eta = -1; b_ljpsi2_phi = -1; b_ljpsi2_m = -9;
   runOnMC_ = !iEvent.isRealData();
@@ -304,7 +314,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       if ( min_BDR > deltaR ) min_BDR = deltaR; 
     }
     b_jpsi_minDR->push_back( min_DR ); 
-    b_jpsi_minBDR->push_back( min_BDR ); 
+    b_jpsi_minBDR->push_back( min_BDR );
+
+    vector<double> inputValues;
+    inputValues.push_back( catJpsi->pt());
+    inputValues.push_back( catJpsi->eta());
+    inputValues.push_back( catJpsi->phi());
+    inputValues.push_back( catJpsi->lxy());
+    inputValues.push_back( catJpsi->vProb());
+    inputValues.push_back( catJpsi->dca());
+    inputValues.push_back( catJpsi->muID());
+    inputValues.push_back( catJpsi->trackQuality());
+    inputValues.push_back( min_DR);
+    inputValues.push_back( min_BDR);
+
+    b_jpsi_mva->push_back( bdt_->GetMvaValue(inputValues) );
+ 
   }
   int trigger = -10;
   if ( channel ==0 ) {
