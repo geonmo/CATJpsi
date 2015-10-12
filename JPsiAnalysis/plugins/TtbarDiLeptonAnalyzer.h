@@ -51,7 +51,7 @@ class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
     vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
     vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
     vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
-    float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
+    float passingSteps(int& trigger, int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
     const reco::Candidate* getLast(const reco::Candidate* p);
 
     TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
@@ -77,11 +77,15 @@ class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
     float b_lep1_pt, b_lep1_eta, b_lep1_phi;
     float b_lep2_pt, b_lep2_eta, b_lep2_phi;
     float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
+    
+    float b_ljpsi1_pt, b_ljpsi1_eta, b_ljpsi1_phi, b_ljpsi1_m;
+    float b_ljpsi2_pt, b_ljpsi2_eta, b_ljpsi2_phi, b_ljpsi2_m;
+
 
     typedef std::vector<float> floats;
     typedef std::vector<int> ints;
     floats * b_jpsi_pt, * b_jpsi_eta, * b_jpsi_phi, * b_jpsi_mass;
-    floats * b_jpsi_vProb, * b_jpsi_l3D, * b_jpsi_dca, * b_jpsi_minDR, * b_jpsi_minBDR;
+    floats * b_jpsi_vProb, * b_jpsi_lxy, * b_jpsi_dca, * b_jpsi_minDR, * b_jpsi_minBDR;
     ints * b_jpsi_muID, * b_jpsi_trackQuality;
     TtFullLepKinSolver* solver;
     double tmassbegin_, tmassend_, tmassstep_;

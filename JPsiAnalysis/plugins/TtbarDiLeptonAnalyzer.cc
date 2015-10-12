@@ -78,7 +78,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   b_jpsi_phi = new floats;
   b_jpsi_mass = new floats;
   b_jpsi_vProb = new floats;
-  b_jpsi_l3D = new floats;
+  b_jpsi_lxy = new floats;
   b_jpsi_dca = new floats;
   b_jpsi_muID = new ints;
   b_jpsi_trackQuality = new ints;
@@ -90,12 +90,25 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("jpsi_phi",&b_jpsi_phi);
   ttree_->Branch("jpsi_mass",&b_jpsi_mass);
   ttree_->Branch("jpsi_vProb",&b_jpsi_vProb);
-  ttree_->Branch("jpsi_l3D",&b_jpsi_l3D);
+  ttree_->Branch("jpsi_lxy",&b_jpsi_lxy);
   ttree_->Branch("jpsi_dca",&b_jpsi_dca);
   ttree_->Branch("jpsi_muID",&b_jpsi_muID);
   ttree_->Branch("jpsi_trackQuality",&b_jpsi_trackQuality);
   ttree_->Branch("jpsi_minDR",&b_jpsi_minDR);
   ttree_->Branch("jpsi_minBDR",&b_jpsi_minBDR);
+
+  ttree_->Branch("ljpsi1_pt", &b_ljpsi1_pt);
+  ttree_->Branch("ljpsi1_eta",&b_ljpsi1_eta);
+  ttree_->Branch("ljpsi1_phi",&b_ljpsi1_phi);
+  ttree_->Branch("ljpsi1_m",  &b_ljpsi1_m);
+  ttree_->Branch("ljpsi2_pt", &b_ljpsi2_pt);
+  ttree_->Branch("ljpsi2_eta",&b_ljpsi2_eta);
+  ttree_->Branch("ljpsi2_phi",&b_ljpsi2_phi);
+  ttree_->Branch("ljpsi2_m",  &b_ljpsi2_m);
+
+
+
+
 
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -122,7 +135,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_njet = -1;
   b_nbjet = -1;
   b_channel = -1;
-  b_step = -1;
+  b_step = -2;
   b_inPhase = 0;
   b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
   b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
@@ -132,12 +145,14 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_jpsi_phi->clear();
   b_jpsi_mass->clear();
   b_jpsi_vProb->clear();
-  b_jpsi_l3D->clear();
+  b_jpsi_lxy->clear();
   b_jpsi_dca->clear();
   b_jpsi_muID->clear();
   b_jpsi_trackQuality->clear();
   b_jpsi_minDR->clear();
   b_jpsi_minBDR->clear();
+  b_ljpsi1_pt = -9; b_ljpsi1_eta = -1; b_ljpsi1_phi = -1; b_ljpsi1_m = -9;
+  b_ljpsi2_pt = -9; b_ljpsi2_eta = -1; b_ljpsi2_phi = -1; b_ljpsi2_m = -9;
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
@@ -269,7 +284,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_jpsi_phi->push_back(catJpsi->phi());
     b_jpsi_mass->push_back(catJpsi->mass());
     b_jpsi_vProb->push_back(catJpsi->vProb());
-    b_jpsi_l3D->push_back(catJpsi->l3D());
+    b_jpsi_lxy->push_back(catJpsi->lxy());
     b_jpsi_dca->push_back(catJpsi->dca());
     int mu_id = catJpsi->muID();
     b_jpsi_muID->push_back( (mu_id&1) + (mu_id&2));
@@ -291,7 +306,24 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_jpsi_minDR->push_back( min_DR ); 
     b_jpsi_minBDR->push_back( min_BDR ); 
   }
-  float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
+  int trigger = -10;
+  if ( channel ==0 ) {
+    edm::Handle<int> HLTMuMu;
+    iEvent.getByLabel(edm::InputTag("recoEventInfo","HLTDoubleMu"),HLTMuMu );
+    trigger = *HLTMuMu; 
+  }
+  else if ( channel == 1 ) {
+    edm::Handle<int> HLTMuEl;
+    iEvent.getByLabel(edm::InputTag("recoEventInfo","HLTMuEG"),HLTMuEl );
+    trigger = *HLTMuEl; 
+  }
+  else if ( channel ==2 ) {
+    edm::Handle<int> HLTElEl;
+    iEvent.getByLabel(edm::InputTag("recoEventInfo","HLTDoubleEl"),HLTElEl );
+    trigger = *HLTElEl; 
+  } 
+
+  float step = passingSteps( trigger, channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
   b_step = step;
 
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
@@ -352,14 +384,27 @@ const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p)
 vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
 {
   vector<cat::Muon> selmuons;
-  for (auto mu : *muons) {
-    //if (!mu.isMediumMuon()) continue;
-    if (!mu.isTightMuon()) continue;
-    if (mu.pt() <= 20.) continue;
-    if (fabs(mu.eta()) >= 2.4) continue;
-    if (mu.relIso(0.4) >= 0.12) continue;
-    //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
-    selmuons.push_back(mu);
+  if ( sysEnergy_ == 8) {
+    for (auto mu : *muons) {
+      //if (!mu.isMediumMuon()) continue;
+      if (!mu.isLooseMuon()) continue;
+      if (mu.pt() <= 20.) continue;
+      if (fabs(mu.eta()) >= 2.4) continue;
+      if (mu.relIso(0.4) >= 0.2) continue;
+      //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
+      selmuons.push_back(mu);
+    }
+  }
+  else if ( sysEnergy_ == 13) {
+    for (auto mu : *muons) {
+      //if (!mu.isMediumMuon()) continue;
+      if (!mu.isTightMuon()) continue;
+      if (mu.pt() <= 20.) continue;
+      if (fabs(mu.eta()) >= 2.4) continue;
+      if (mu.relIso(0.3) >= 0.15) continue;
+      //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
+      selmuons.push_back(mu);
+    }
   }
 
   return selmuons;
@@ -368,18 +413,34 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>*
 vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs )
 {
   vector<cat::Electron> selelecs;
-  for (auto el : *elecs) {
-    if (!el.electronID("eidLoose")) continue;
-    if (!el.passConversionVeto()) continue;
-    if (!el.isPF()) continue;
-    if (el.pt() <= 20.) continue;
-    if ((fabs(el.scEta()) <= 1.4442) && (el.relIso(0.3) >= 0.1649)) continue;
-    if ((fabs(el.scEta()) >= 1.566) && (el.relIso(0.3) >= 0.2075)) continue;
-    if ((fabs(el.scEta()) > 1.4442) && (fabs(el.scEta()) < 1.566)) continue;
-    if (fabs(el.eta()) >= 2.5) continue;
-    if (el.pt() < 5) continue;
-    //printf("electron with pt %4.1f\n", el.pt());
-    selelecs.push_back(el);
+  if ( sysEnergy_ == 8 ) {
+    for (auto el : *elecs) {
+      if ( !el.electronID("mvaTrigV0")>0.5 ) continue;
+      if (!el.passConversionVeto()) continue;
+      if (!el.isPF()) continue;
+      if (el.pt() <= 20.) continue;
+      if ((fabs(el.scEta()) > 1.4442) && (fabs(el.scEta()) < 1.566)) continue;
+      if (fabs(el.eta()) >= 2.5) continue;
+      if (el.relIso(0.3) >= 0.15) continue;
+      //printf("electron with pt %4.1f\n", el.pt());
+      selelecs.push_back(el);
+    }
+
+
+  }
+  else if ( sysEnergy_ == 13) {
+    for (auto el : *elecs) {
+      if (!el.electronID("eidLoose")) continue;
+      if (!el.passConversionVeto()) continue;
+      if (!el.isPF()) continue;
+      if (el.pt() <= 20.) continue;
+      if ((fabs(el.scEta()) <= 1.4442) && (el.relIso(0.3) >= 0.1649)) continue;
+      if ((fabs(el.scEta()) >= 1.566) && (el.relIso(0.3) >= 0.2075)) continue;
+      if ((fabs(el.scEta()) > 1.4442) && (fabs(el.scEta()) < 1.566)) continue;
+      if (fabs(el.eta()) >= 2.5) continue;
+      //printf("electron with pt %4.1f\n", el.pt());
+      selelecs.push_back(el);
+    }
   }
   return selelecs;
 }
@@ -387,14 +448,23 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::El
 vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep )
 {
   vector<cat::Jet> seljets;
-  for (auto jet : *jets) {
-    if (!jet.LooseId()) continue;
-    if (jet.pt() <= 30.) continue;
-    if (fabs(jet.eta()) >= 2.4)	continue;
-    if (jet.tlv().DeltaR(recolep[0]) <= 0.4) continue;
-    if (jet.tlv().DeltaR(recolep[1]) <= 0.4) continue;
-    // printf("jet with pt %4.1f\n", jet.pt());
-    seljets.push_back(jet);
+  if ( sysEnergy_ == 8 ) {
+    for (auto jet : *jets) {
+      if (!jet.LooseId()) continue;
+      if (jet.pt() <= 30.) continue;
+      if (fabs(jet.eta()) >= 2.4)	continue;
+      seljets.push_back(jet);
+    }
+  }
+  else if( sysEnergy_ == 13) {
+    for (auto jet : *jets) {
+      if (!jet.LooseId()) continue;
+      if (jet.pt() <= 30.) continue;
+      if (fabs(jet.eta()) >= 2.4)	continue;
+      if (jet.tlv().DeltaR(recolep[0]) <= 0.4) continue;
+      if (jet.tlv().DeltaR(recolep[1]) <= 0.4) continue;
+      seljets.push_back(jet);
+    }
   }
   return seljets;
 }
@@ -423,9 +493,11 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
   return selBjets;
 }
 
-float TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag)
+float TtbarDiLeptonAnalyzer::passingSteps(int& trigger, int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag)
 {
-  int step = 0;
+  int step = -1;
+  if ( abs(trigger) != 1 ) return step;
+  step = 0; 
   if (ll_mass <= 20.) return step;
   if (ll_charge > 0.) return step;
   step = 1;

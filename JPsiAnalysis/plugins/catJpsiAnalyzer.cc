@@ -48,30 +48,30 @@ catJpsiAnalyzer::catJpsiAnalyzer(const edm::ParameterSet& iConfig)
   edm::Service<TFileService> fs;
 
   matchedtree_ = fs->make<TTree>("matched", "matched");
-  matchedtree_->Branch("jpsi_pt",&b_mjpsi_pt);
-  matchedtree_->Branch("jpsi_eta",&b_mjpsi_eta);
-  matchedtree_->Branch("jpsi_phi",&b_mjpsi_phi);
-  matchedtree_->Branch("jpsi_m",&b_mjpsi_m);
-  matchedtree_->Branch("jpsi_vProb",&b_mjpsi_vProb);
-  matchedtree_->Branch("jpsi_lxy",&b_mjpsi_lxy);
-  matchedtree_->Branch("jpsi_dca",&b_mjpsi_dca);
-  matchedtree_->Branch("jpsi_muID",&b_mjpsi_muID);
-  matchedtree_->Branch("jpsi_trackQuality",&b_mjpsi_trackQuality);
-  matchedtree_->Branch("jpsi_minJetDR",&b_mjpsi_minJetDR);
-  matchedtree_->Branch("jpsi_minBJetDR",&b_mjpsi_minBJetDR);
+  matchedtree_->Branch("jpsi_pt",&b_mjpsi_pt, "jpsi_pt/F");
+  matchedtree_->Branch("jpsi_eta",&b_mjpsi_eta,"jpsi_eta/F");
+  matchedtree_->Branch("jpsi_phi",&b_mjpsi_phi,"jpsi_phi/F");
+  matchedtree_->Branch("jpsi_m",&b_mjpsi_m,"jpsi_m/F");
+  matchedtree_->Branch("jpsi_vProb",&b_mjpsi_vProb,"jpsi_vProb/F");
+  matchedtree_->Branch("jpsi_lxy",&b_mjpsi_lxy,"jpsi_lxy/F");
+  matchedtree_->Branch("jpsi_dca",&b_mjpsi_dca,"jpsi_dca/F");
+  matchedtree_->Branch("jpsi_muID",&b_mjpsi_muID,"jpsi_muID/I");
+  matchedtree_->Branch("jpsi_trackQuality",&b_mjpsi_trackQuality,"jpsi_trackQuality/I");
+  matchedtree_->Branch("jpsi_minJetDR",&b_mjpsi_minJetDR,"jpsi_minJetDR/F");
+  matchedtree_->Branch("jpsi_minBJetDR",&b_mjpsi_minBJetDR,"jpsi_minBJetDR/F");
 
   unmatchedtree_ = fs->make<TTree>("unmatched", "unmatched");
-  unmatchedtree_->Branch("jpsi_pt",&b_ujpsi_pt);
-  unmatchedtree_->Branch("jpsi_eta",&b_ujpsi_eta);
-  unmatchedtree_->Branch("jpsi_phi",&b_ujpsi_phi);
-  unmatchedtree_->Branch("jpsi_m",&b_ujpsi_m);
-  unmatchedtree_->Branch("jpsi_vProb",&b_ujpsi_vProb);
-  unmatchedtree_->Branch("jpsi_lxy",&b_ujpsi_lxy);
-  unmatchedtree_->Branch("jpsi_dca",&b_ujpsi_dca);
-  unmatchedtree_->Branch("jpsi_muID",&b_ujpsi_muID);
-  unmatchedtree_->Branch("jpsi_trackQuality",&b_ujpsi_trackQuality);
-  unmatchedtree_->Branch("jpsi_minJetDR",&b_ujpsi_minJetDR);
-  unmatchedtree_->Branch("jpsi_minBJetDR",&b_ujpsi_minBJetDR);
+  unmatchedtree_->Branch("jpsi_pt",&b_ujpsi_pt,"jpsi_pt/F");
+  unmatchedtree_->Branch("jpsi_eta",&b_ujpsi_eta,"jpsi_eta/F");
+  unmatchedtree_->Branch("jpsi_phi",&b_ujpsi_phi,"jpsi_phi/F");
+  unmatchedtree_->Branch("jpsi_m",&b_ujpsi_m,"jpsi_m/F");
+  unmatchedtree_->Branch("jpsi_vProb",&b_ujpsi_vProb,"jpsi_vProb/F");
+  unmatchedtree_->Branch("jpsi_lxy",&b_ujpsi_lxy,"jpsi_lxy/F");
+  unmatchedtree_->Branch("jpsi_dca",&b_ujpsi_dca,"jpsi_dca/F");
+  unmatchedtree_->Branch("jpsi_muID",&b_ujpsi_muID,"jpsi_muID/I");
+  unmatchedtree_->Branch("jpsi_trackQuality",&b_ujpsi_trackQuality,"jpsi_trackQuality/I");
+  unmatchedtree_->Branch("jpsi_minJetDR",&b_ujpsi_minJetDR,"jpsi_minJetDR/F");
+  unmatchedtree_->Branch("jpsi_minBJetDR",&b_ujpsi_minBJetDR,"jpsi_minBJetDR/F");
 }
 catJpsiAnalyzer::~catJpsiAnalyzer()
 {
@@ -199,7 +199,7 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
         float deltaR = jpsi_tlv.DeltaR( bjet_tlv);
         if ( min_BDR > deltaR ) min_BDR = deltaR; 
       }
-      if ( min_BDR<10) {
+      if ( min_BDR>0 && min_BDR<10) {
         b_mjpsi_pt=(catJpsi->pt());
         b_mjpsi_eta=(catJpsi->eta());
         b_mjpsi_phi=(catJpsi->phi());
@@ -230,7 +230,7 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
         float deltaR = jpsi_tlv.DeltaR( bjet_tlv);
         if ( min_BDR > deltaR ) min_BDR = deltaR; 
       }
-      if ( min_BDR<10) {
+      if ( min_BDR>0 && min_BDR<10) {
         b_ujpsi_pt=(catJpsi->pt());
         b_ujpsi_eta=(catJpsi->eta());
         b_ujpsi_phi=(catJpsi->phi());
