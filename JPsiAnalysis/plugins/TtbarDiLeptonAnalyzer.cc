@@ -73,6 +73,11 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
 
+  ttree_->Branch("pvN",&b_pvN,"pvN/I");
+  ttree_->Branch("pileupWeight",&b_pileupWeight,"pileupWeight/F");
+  ttree_->Branch("pileupWeight_up",&b_pileupWeight_up,"pileupWeight_up/F");
+  ttree_->Branch("pileupWeight_dn",&b_pileupWeight_dn,"pileupWeight_dn/F");
+
   b_jpsi_pt = new floats;
   b_jpsi_eta = new floats;
   b_jpsi_phi = new floats;
@@ -99,6 +104,15 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("jpsi_minDR",&b_jpsi_minDR);
   ttree_->Branch("jpsi_minBDR",&b_jpsi_minBDR);
   ttree_->Branch("jpsi_mva",&b_jpsi_mva);
+
+  b_ljpsi1_pt = new floats;
+  b_ljpsi1_eta = new floats;
+  b_ljpsi1_phi = new floats;
+  b_ljpsi1_m = new floats;
+  b_ljpsi2_pt = new floats;
+  b_ljpsi2_eta = new floats;
+  b_ljpsi2_phi = new floats;
+  b_ljpsi2_m = new floats;
 
   ttree_->Branch("ljpsi1_pt", &b_ljpsi1_pt);
   ttree_->Branch("ljpsi1_eta",&b_ljpsi1_eta);
@@ -161,8 +175,20 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_jpsi_minBDR->clear();
   b_jpsi_mva->clear();
 
-  b_ljpsi1_pt = -9; b_ljpsi1_eta = -1; b_ljpsi1_phi = -1; b_ljpsi1_m = -9;
-  b_ljpsi2_pt = -9; b_ljpsi2_eta = -1; b_ljpsi2_phi = -1; b_ljpsi2_m = -9;
+  b_ljpsi1_pt->clear();
+  b_ljpsi1_eta->clear();
+  b_ljpsi1_phi->clear();
+  b_ljpsi1_m->clear();
+  b_ljpsi2_pt->clear();
+  b_ljpsi2_eta->clear();
+  b_ljpsi2_phi->clear();
+  b_ljpsi2_m->clear();
+
+  b_pvN = -9;
+  b_pileupWeight = 0.0;
+  b_pileupWeight_up = 0.0;
+  b_pileupWeight_dn = 0.0;
+
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
@@ -329,7 +355,23 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     inputValues.push_back( min_BDR);
 
     b_jpsi_mva->push_back( bdt_->GetMvaValue(inputValues) );
- 
+    TLorentzVector ljpsi1, ljpsi2;
+    if ( jpsi_tlv.DeltaR( recolep[0]) < jpsi_tlv.DeltaR( recolep[1] )) {
+      ljpsi1 = jpsi_tlv+recolep[0];
+      ljpsi2 = jpsi_tlv+recolep[1];
+    }
+    else {
+      ljpsi1 = jpsi_tlv+recolep[1];
+      ljpsi2 = jpsi_tlv+recolep[0];
+    }          
+    b_ljpsi1_pt->push_back ( ljpsi1.Pt()  );
+    b_ljpsi1_eta->push_back( ljpsi1.Eta() );
+    b_ljpsi1_phi->push_back( ljpsi1.Phi() );
+    b_ljpsi1_m->push_back  ( ljpsi1.M());
+    b_ljpsi2_pt->push_back ( ljpsi2.Pt()  );
+    b_ljpsi2_eta->push_back( ljpsi2.Eta() );
+    b_ljpsi2_phi->push_back( ljpsi2.Phi() );
+    b_ljpsi2_m->push_back  ( ljpsi2.M());
   }
   int trigger = -10;
   if ( channel ==0 ) {
@@ -347,6 +389,26 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     iEvent.getByLabel(edm::InputTag("recoEventInfo","HLTDoubleEl"),HLTElEl );
     trigger = *HLTElEl; 
   } 
+
+  edm::Handle<int> handle_pvN ; 
+  iEvent.getByLabel(edm::InputTag("recoEventInfo","pvN"),handle_pvN);
+  int pvN = *handle_pvN;
+  b_pvN = pvN;
+
+  edm::Handle<double> pileupWeightHandler ; 
+  iEvent.getByLabel(edm::InputTag("pileupWeight",""),pileupWeightHandler);
+  double pileupWeight = *pileupWeightHandler;
+  b_pileupWeight = pileupWeight;
+
+  edm::Handle<double> pileupWeightUpHandler ; 
+  iEvent.getByLabel(edm::InputTag("pileupWeight","up"),pileupWeightUpHandler);
+  double pileupWeightUp = *pileupWeightUpHandler;
+  b_pileupWeight_up = pileupWeightUp;
+
+  edm::Handle<double> pileupWeightDnHandler ; 
+  iEvent.getByLabel(edm::InputTag("pileupWeight","dn"),pileupWeightDnHandler);
+  double pileupWeightDn = *pileupWeightDnHandler;
+  b_pileupWeight_dn = pileupWeightDn;
 
   float step = passingSteps( trigger, channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
   b_step = step;
