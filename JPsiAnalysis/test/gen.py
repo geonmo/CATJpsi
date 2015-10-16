@@ -166,12 +166,7 @@ class JpsiAna(TopAna) :
         if ( matching ) :
             matched_jpsis.append( [reco_jpsi,match_pair])
         else :
-            if ( not isRD and c_gen_jpsis>0 ) :
-              unmatched_jpsis.append( [reco_jpsi,[]])
-            elif (isRD) :
-              unmatched_jpsis.append( [reco_jpsi,[]])
-            else :  ## no genJ/psi on MC  
-              continue
+            unmatched_jpsis.append( [reco_jpsi,[]])
 
       if ( len(matched_jpsis)>0 ) :
         print "At least one jpsis is matched. ( %d)"%(len(matched_jpsis))

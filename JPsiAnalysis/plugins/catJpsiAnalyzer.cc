@@ -199,7 +199,8 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
         float deltaR = jpsi_tlv.DeltaR( bjet_tlv);
         if ( min_BDR > deltaR ) min_BDR = deltaR; 
       }
-      if ( min_BDR>0 && min_BDR<10) {
+      //if ( min_BDR>0 && min_BDR<10) {
+      {
         b_mjpsi_pt=(catJpsi->pt());
         b_mjpsi_eta=(catJpsi->eta());
         b_mjpsi_phi=(catJpsi->phi());
@@ -230,7 +231,8 @@ void catJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
         float deltaR = jpsi_tlv.DeltaR( bjet_tlv);
         if ( min_BDR > deltaR ) min_BDR = deltaR; 
       }
-      if ( min_BDR>0 && min_BDR<10) {
+      //if ( min_BDR>0 && min_BDR<10) {
+      {
         b_ujpsi_pt=(catJpsi->pt());
         b_ujpsi_eta=(catJpsi->eta());
         b_ujpsi_phi=(catJpsi->phi());
