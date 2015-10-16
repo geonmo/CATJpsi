@@ -395,20 +395,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   int pvN = *handle_pvN;
   b_pvN = pvN;
 
-  edm::Handle<double> pileupWeightHandler ; 
-  iEvent.getByLabel(edm::InputTag("pileupWeight",""),pileupWeightHandler);
-  double pileupWeight = *pileupWeightHandler;
-  b_pileupWeight = pileupWeight;
+  if ( runOnMC_ ) { 
+    edm::Handle<double> pileupWeightHandler ; 
+    iEvent.getByLabel(edm::InputTag("pileupWeight",""),pileupWeightHandler);
+    double pileupWeight = *pileupWeightHandler;
+    b_pileupWeight = pileupWeight;
 
-  edm::Handle<double> pileupWeightUpHandler ; 
-  iEvent.getByLabel(edm::InputTag("pileupWeight","up"),pileupWeightUpHandler);
-  double pileupWeightUp = *pileupWeightUpHandler;
-  b_pileupWeight_up = pileupWeightUp;
+    edm::Handle<double> pileupWeightUpHandler ; 
+    iEvent.getByLabel(edm::InputTag("pileupWeight","up"),pileupWeightUpHandler);
+    double pileupWeightUp = *pileupWeightUpHandler;
+    b_pileupWeight_up = pileupWeightUp;
 
-  edm::Handle<double> pileupWeightDnHandler ; 
-  iEvent.getByLabel(edm::InputTag("pileupWeight","dn"),pileupWeightDnHandler);
-  double pileupWeightDn = *pileupWeightDnHandler;
-  b_pileupWeight_dn = pileupWeightDn;
+    edm::Handle<double> pileupWeightDnHandler ; 
+    iEvent.getByLabel(edm::InputTag("pileupWeight","dn"),pileupWeightDnHandler);
+    double pileupWeightDn = *pileupWeightDnHandler;
+    b_pileupWeight_dn = pileupWeightDn;
+  }
 
   float step = passingSteps( trigger, channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
   b_step = step;
